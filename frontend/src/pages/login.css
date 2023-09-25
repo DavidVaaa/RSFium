@@ -1,0 +1,89 @@
+/* login.css */
+body {
+    background-color: #ffffff;
+    font-family: 'Roboto Serif', serif;
+    font-weight: bold;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+h2 {
+    color: #005496;
+    font-size: 24px;
+}
+
+p {
+    color: #848484;
+    font-weight: normal;
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    padding-left: 30px;
+    box-sizing: border-box;
+    font-size: 16px;
+    font-family: 'Roboto serif';
+}
+
+button {
+    background-color: #AE832D;
+    color: #ffffff;
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    font-family: 'Roboto serif';
+    font-weight: bold;
+    width: 100%;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+.signup {
+    font-size: 14px;
+    color: #848484;
+}
+
+a {
+    text-decoration: none;
+    color: #005496;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.input-container {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #ccc;
+    padding-bottom: 15px;
+}
+
+.logo {
+    width: 100px; /* Ajusta el ancho según tu logotipo */
+    height: auto; /* Mantén la relación de aspecto */
+    margin-bottom: 20px; /* Agrega espacio entre el logo y el título */
+  }
+  
