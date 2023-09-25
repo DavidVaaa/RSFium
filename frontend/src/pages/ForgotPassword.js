@@ -5,23 +5,22 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons'; // Importa los iconos de usuario y candado
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
+function ForgotPassword() {
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
   };
 
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
-  };
-
   const navigate = useNavigate();
+
+  const handleCancel = (event) => {
+    event.preventDefault();
+    navigate('/');
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    navigate('/home');
   };
 
 
@@ -29,7 +28,7 @@ function Login() {
     <div>
       <img src={logo} alt="FIUMER Logo" className="logo" />
       <h2>Bienvenido a FIUMER</h2>
-      <p>Iniciar sesión para continuar</p>
+      <p>¿Olvidaste tu contraseña?</p>
       <form onSubmit={handleSubmit}>
         <div className="input-container">
           <FontAwesomeIcon icon={faUser} className="input-icon" />
@@ -41,23 +40,11 @@ function Login() {
             required
           />
         </div>
-        <div className="input-container">
-          <FontAwesomeIcon icon={faLock} className="input-icon" />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={handlePasswordChange}
-            required
-          />
-        </div>
-        <a href="/forgot-password" className="forgot-password">¿Olvidaste tu contraseña?</a>
-        <button type="submit">Iniciar Sesión</button>
+        <button type="submit">Enviar</button>
       </form>
-      <p className="signup">¿No tienes una cuenta? <a href="/register">Regístrate</a></p>
+      <button id="cancel" onClick={handleCancel}>Cancelar</button>
     </div>
   );
 }
 
-export default Login;
-
+export default ForgotPassword;
