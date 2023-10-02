@@ -30,3 +30,5 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect('login')  # Redirect to the login page after logout
+
+
