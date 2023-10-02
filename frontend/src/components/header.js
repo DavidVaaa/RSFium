@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './header.css';
 import logo from '../images/logo.png';
-
+import { useAuth } from '../AuthContext';
+import { Link } from 'react-router-dom';
 
 function Header() {
-
+    const { user } = useAuth();
     return (
         <header className="header">
             {/* <div className="logo">
@@ -12,11 +13,14 @@ function Header() {
             </div> */}
             <nav className="nav">
                 <ul>
-                    <li><a href="#">Mis cursos</a></li>
-                    <li><a href="#">Calendario</a></li>
-                    <li><a href="#">Debates</a></li>
+                    <li><Link to="/home">Mis cursos</Link></li>
+                    <li><Link to="/calendar">Calendario</Link></li>
+                    <li><Link to="/debates">Debates</Link></li>
                 </ul>
             </nav>
+            <div className="user-info">
+                {user && <span>{user.username}</span>}
+            </div>
         </header>
     );
 }

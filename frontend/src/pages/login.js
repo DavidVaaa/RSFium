@@ -4,10 +4,13 @@ import logo from '../images/logo.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons'; // Importa los iconos de usuario y candado
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const { loginUser } = useAuth(); 
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
@@ -17,10 +20,10 @@ function Login() {
     setPassword(event.target.value);
   };
 
-  const navigate = useNavigate();
-
   const handleSubmit = (event) => {
     event.preventDefault();
+    const userData = { username: 'Username Example' };
+    loginUser(userData);
     navigate('/home');
   };
 

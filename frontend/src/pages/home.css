@@ -1,0 +1,14 @@
+/* Home.css */
+
+.courses {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 20px;
+  }
+
+#title{
+    color: #AE832D;
+    text-align: left;
+}
+  
