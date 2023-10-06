@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from .validators import validate_teacher_role  # Importa la función de validación
-
+from .validators import validate_teacher_role
 
 
 class CustomUser(AbstractUser):
@@ -21,6 +20,11 @@ class CustomUser(AbstractUser):
     linkedin = models.URLField(blank=True)
     materias = models.ManyToManyField('Materia', related_name='users', blank=True)
 
+    def tiene_rol_adecuado(self):
+        # Lista de roles permitidos ("Student" y "Teacher")
+        roles_permitidos = ["Student", "Teacher"]
+        return self.rol in roles_permitidos
+
 
 class Materia(models.Model):
     codigo = models.AutoField(primary_key=True)  # Utiliza AutoField para claves primarias automáticas
@@ -35,6 +39,7 @@ class Materia(models.Model):
 
     def __str__(self):
         return self.nombre
+
 
 class UsuarioMateria(models.Model):
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -52,6 +57,7 @@ class Evaluacion(models.Model):
     def __str__(self):
         return self.nombre
 
+
 class Debate(models.Model):
     evaluacion = models.ForeignKey(Evaluacion, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=255)
@@ -61,19 +67,6 @@ class Debate(models.Model):
     def __str__(self):
         return self.nombre
 
-class Notas(models.Model):
-    evaluacion_id=models.ForeignKey(Evaluacion, on_delete=models.CASCADE)
-    usuario_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    nota =models.IntegerField(
-        null=True,
-        blank=True,
-        min_value=1,
-        max_value=12,
-    )
-    valor_nota =models.DecimalField(
-        max_digits=3,
-        decimal_places=2,
-    )
 
 class Chat(models.Model):
     materia = models.ForeignKey(Materia, on_delete=models.CASCADE)
@@ -81,6 +74,8 @@ class Chat(models.Model):
 
     def __str__(self):
         return self.nombre
+
+
 class Comentario(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
