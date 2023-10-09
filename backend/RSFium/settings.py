@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'RSFium.Fiumers'
+    'Fiumers'
 ]
 
 MIDDLEWARE = [
@@ -76,12 +76,12 @@ WSGI_APPLICATION = 'RSFium.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dbFiumers',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',  # Set the host where your database is located
-        'PORT': '',  
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Fiumers',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 

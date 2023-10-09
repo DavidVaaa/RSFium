@@ -1,7 +1,7 @@
 from django.contrib.auth import login, authenticate, logout
 from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, ComentarioForm
-from .models import Materia, CustomUser, Comentario, Chat
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, ComentarioForm, EvaluacionForm
+from .models import Materia, CustomUser, Comentario, Chat, Evaluacion
 
 
 def home(request):
@@ -94,3 +94,47 @@ def crear_comentario(request, materia_id, chat_id):
         formulario = ComentarioForm()
 
     return render(request, 'crear_comentario.html', {'formulario': formulario})
+
+
+def comentarios_del_chat(request, chat_id):
+    # Obtén el chat correspondiente
+    chat = Chat.objects.get(id=chat_id)
+
+    # Obtén todos los comentarios asociados a ese chat
+    comentarios = Comentario.objects.filter(chat=chat)
+
+    return render(request, 'comentarios_del_chat.html', {'chat': chat, 'comentarios': comentarios})
+
+
+def ingresar_evaluacion(request, materia_id):
+    # Verifica si el usuario está autenticado y tiene el rol de "Teacher"
+    if request.user.is_authenticated and request.user.rol == 'Teacher':
+        # Obtén la materia correspondiente
+        materia = Materia.objects.get(id=materia_id)
+
+        # Verifica si el usuario es el profesor de la materia
+        if materia.profesor == request.user:
+            if request.method == 'POST':
+                # Procesa el formulario de evaluación
+                formulario = EvaluacionForm(request.POST)
+                if formulario.is_valid():
+                    nombre = formulario.cleaned_data['nombre']
+                    fecha_evaluacion = formulario.cleaned_data['fecha_evaluacion']
+
+                    # Crea y guarda la evaluación asociada a la materia
+                    evaluacion = Evaluacion(codigo_materia=materia, nombre=nombre, fecha_evaluacion=fecha_evaluacion)
+                    evaluacion.save()
+
+                    # Redirige a la página de detalle de la materia
+                    return redirect('detalle_materia', materia_id=materia_id)
+            else:
+                # Si la solicitud no es un POST, muestra el formulario de evaluación vacío
+                formulario = EvaluacionForm()
+
+            return render(request, 'ingresar_evaluacion.html', {'formulario': formulario, 'materia': materia})
+        else:
+            # Maneja el caso en el que el usuario no sea el profesor de la materia
+            return render(request, 'pagina_de_error.html')
+    else:
+        # Maneja el caso en el que el usuario no esté autenticado o no tenga el rol adecuado
+        return render(request, 'pagina_de_error.html')
