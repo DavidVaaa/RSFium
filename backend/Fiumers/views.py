@@ -1,5 +1,7 @@
 from django.contrib.auth import login, authenticate, logout
 from django.shortcuts import render, redirect
+from django.urls import reverse
+
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, ComentarioForm, EvaluacionForm
 from .models import Materia, CustomUser, Comentario, Chat, Evaluacion
 
@@ -18,7 +20,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('home')  # Replace 'home' with your desired redirect URL after registration!
+            return redirect('/')  # Replace 'home' with your desired redirect URL after registration!
     else:
         form = CustomUserCreationForm()
     # Reemplazar con ruta a la pagina luego del register
@@ -34,7 +36,7 @@ def user_login(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('home')  # Replace 'home' with your desired redirect URL after login
+                return redirect(reverse('/home'))  # Replace 'home' with your desired redirect URL after login
     else:
         form = CustomAuthenticationForm()
     return render(request, 'registration/login.html', {'form': form})
@@ -42,7 +44,7 @@ def user_login(request):
 
 def user_logout(request):
     logout(request)
-    return redirect('login')  # Redirect to the login page after logout
+    return redirect(reverse('login'))  # Redirect to the login page after logout
 
 
 def materias_del_alumno(request):
