@@ -1,12 +1,14 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
+router = DefaultRouter()
+router.register(r'customusers', views.CustomUserViewSet, basename='customuser')
+
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('register/', views.register, name='register'),
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.user_logout, name='logout'),
-    path('materias/', views.materias_del_alumno, name='materias_del_alumno'),
-    path('materia/<int:materia_id>/unirse/', views.unirse_a_materia, name='unirse_a_materia'),
-    path('materia/<int:materia_id>/chat/<int:chat_id>/comentario/', views.crear_comentario, name='crear_comentario'),
+    path('api/', include(router.urls)),
+    path('api/register/', views.CustomUserViewSet.as_view({'post': 'register'}), name='customuser-register'),
+    path('api/login/', views.CustomUserViewSet.as_view({'post': 'user_login'}), name='customuser-login'),
+    path('api/logout/', views.CustomUserViewSet.as_view({'post': 'user_logout'}), name='customuser-logout'),
 ]
+

@@ -1,9 +1,14 @@
 from django.contrib.auth import login, authenticate, logout
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, ComentarioForm, EvaluacionForm
 from .models import Materia, CustomUser, Comentario, Chat, Evaluacion
+from .serializers import CustomUserSerializer
 
 
 def home(request):
@@ -14,38 +19,32 @@ def home(request):
     return render(request, 'home.html', {'materias': materias})
 
 
-def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({'message': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def user_login(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
             login(request, user)
-            return redirect('/')  # Replace 'home' with your desired redirect URL after registration!
-    else:
-        form = CustomUserCreationForm()
-    # Reemplazar con ruta a la pagina luego del register
-    return render(request, 'registration/register.html', {'form': form})
+            return Response({'message': 'Inicio de sesión exitoso'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
-
-def user_login(request):
-    if request.method == 'POST':
-        form = CustomAuthenticationForm(request, request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect(reverse('/home'))  # Replace 'home' with your desired redirect URL after login
-    else:
-        form = CustomAuthenticationForm()
-    return render(request, 'registration/login.html', {'form': form})
-
-
-def user_logout(request):
-    logout(request)
-    return redirect(reverse('login'))  # Redirect to the login page after logout
-
+    @action(detail=False, methods=['post'])
+    def user_logout(self, request):
+        logout(request)
+        return Response({'message': 'Cierre de sesión exitoso'}, status=status.HTTP_200_OK)
 
 def materias_del_alumno(request):
     if request.user.is_authenticated and request.user.rol == 'Student':
