@@ -1,14 +1,14 @@
 from django.contrib.auth import login, authenticate, logout
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, ComentarioForm, EvaluacionForm
 from .models import Materia, CustomUser, Comentario, Chat, Evaluacion
-from .serializers import CustomUserSerializer
+from .serializers import CustomUserSerializer, MateriaSerializer, EvaluacionSerializer
 
 
 def home(request):
@@ -46,28 +46,73 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         logout(request)
         return Response({'message': 'Cierre de sesión exitoso'}, status=status.HTTP_200_OK)
 
-def materias_del_alumno(request):
-    if request.user.is_authenticated and request.user.rol == 'Student':
-        # Obtén las materias asociadas al alumno actual
-        materias_del_alumno = request.user.materias.all()
-        return render(request, 'materias_del_alumno.html', {'materias_del_alumno': materias_del_alumno})
-    else:
-        # Maneja el caso en el que el usuario no esté autenticado o no tenga el rol adecuado
-        return render(request, 'pagina_de_error.html')
+
+class MateriaViewSet(viewsets.ModelViewSet):
+    queryset = Materia.objects.all()
+    serializer_class = MateriaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request):
+        serializer = MateriaSerializer(data=request.data)
+
+        if serializer.is_valid():
+            # Verifica si el usuario actual tiene permiso para crear materias (puedes ajustar esta lógica)
+            if request.user.rol == 'Teacher':
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'No autorizado para crear materias'}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request):
+        if request.user.rol == 'Student':
+            # Filtra las materias asociadas al alumno actual
+            queryset = self.queryset.filter(users=request.user)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({'message': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+    def unirse_a_materia(self, request, materia_id):
+        usuario_actual = request.user
+
+        try:
+            # Obtén la materia a la que el usuario quiere unirse
+            materia = self.queryset.get(id=materia_id)
+        except Materia.DoesNotExist:
+            return Response({'message': 'Materia no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        roles_permitidos = ["Student", "Teacher"]
+        if usuario_actual.rol in roles_permitidos:
+            materia.users.add(usuario_actual)
+            return Response({'message': 'Unido exitosamente'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
 
 
-def unirse_a_materia(request, materia_id):
-    usuario_actual = request.user
+class EvaluacionViewSet(viewsets.ModelViewSet):
+    queryset = Evaluacion.objects.all()
+    serializer_class = EvaluacionSerializer
 
-    # Obtén la materia a la que el usuario quiere unirse
-    materia = Materia.objects.get(id=materia_id)
+    @action(detail=False, methods=['post'])
+    def crear_evaluacion(self, request, materia_id):
+        # Obtener la materia correspondiente
+        try:
+            materia = Materia.objects.get(id=materia_id)
+        except Materia.DoesNotExist:
+            return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
 
-    roles_permitidos = ["Student", "Teacher"]
-    if usuario_actual.rol in roles_permitidos:
-        materia.users.add(usuario_actual)
-        return redirect('pagina_de_materia', materia_id=materia_id)
-    else:
-        return redirect('pagina_de_error')
+        # Verificar si el usuario actual es el profesor de la materia
+        if request.user == materia.profesor:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(codigo_materia=materia)
+                return Response({'message': 'Evaluación creada exitosamente'}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'No estás autorizado para realizar esta acción'},
+                            status=status.HTTP_403_FORBIDDEN)
 
 
 def crear_comentario(request, materia_id, chat_id):
@@ -105,37 +150,3 @@ def comentarios_del_chat(request, chat_id):
     comentarios = Comentario.objects.filter(chat=chat)
 
     return render(request, 'comentarios_del_chat.html', {'chat': chat, 'comentarios': comentarios})
-
-
-def ingresar_evaluacion(request, materia_id):
-    # Verifica si el usuario está autenticado y tiene el rol de "Teacher"
-    if request.user.is_authenticated and request.user.rol == 'Teacher':
-        # Obtén la materia correspondiente
-        materia = Materia.objects.get(id=materia_id)
-
-        # Verifica si el usuario es el profesor de la materia
-        if materia.profesor == request.user:
-            if request.method == 'POST':
-                # Procesa el formulario de evaluación
-                formulario = EvaluacionForm(request.POST)
-                if formulario.is_valid():
-                    nombre = formulario.cleaned_data['nombre']
-                    fecha_evaluacion = formulario.cleaned_data['fecha_evaluacion']
-
-                    # Crea y guarda la evaluación asociada a la materia
-                    evaluacion = Evaluacion(codigo_materia=materia, nombre=nombre, fecha_evaluacion=fecha_evaluacion)
-                    evaluacion.save()
-
-                    # Redirige a la página de detalle de la materia
-                    return redirect('detalle_materia', materia_id=materia_id)
-            else:
-                # Si la solicitud no es un POST, muestra el formulario de evaluación vacío
-                formulario = EvaluacionForm()
-
-            return render(request, 'ingresar_evaluacion.html', {'formulario': formulario, 'materia': materia})
-        else:
-            # Maneja el caso en el que el usuario no sea el profesor de la materia
-            return render(request, 'pagina_de_error.html')
-    else:
-        # Maneja el caso en el que el usuario no esté autenticado o no tenga el rol adecuado
-        return render(request, 'pagina_de_error.html')
