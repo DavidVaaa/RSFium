@@ -63,6 +63,7 @@ class Debate(models.Model):
     fecha_nueva = models.DateField()
     fecha_original = models.DateField()
 
+
     def __str__(self):
         return self.nombre
 

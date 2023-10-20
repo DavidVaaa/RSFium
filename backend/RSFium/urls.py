@@ -18,5 +18,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('Fiumers.urls')),  # Cambia 'Fiumers.api.urls' a la ubicación real de tus rutas de la API
+    path('', include('Fiumers.urls')),  # Cambia 'Fiumers.api.urls' a la ubicación real de tus rutas de la API
 ]
