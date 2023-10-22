@@ -1,0 +1,52 @@
+.form-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 50px;
+}
+
+.form-column {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.form-field {
+    margin-bottom: 25px;
+}
+
+.form-field label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+/* Esto asegura que todos los campos tengan el mismo ancho */
+.form-field input,
+.form-field select,
+.form-field button{
+    width: 70%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: 'Roboto serif';
+}
+
+.form-field input{
+    width: 67.5%;
+}
+
+
+/* Estilo para el botón */
+.form-field button {
+    background-color: #005496;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Roboto serif';
+    margin-top: 20px;
+}
+
+.form-field button:hover {
+    background-color: #0056b3;
+}

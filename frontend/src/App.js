@@ -5,6 +5,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Home from './pages/home';
 import Calendar from './pages/Calendar';
 import Debates from './pages/Debates';
+import DetallesDebates from './pages/DetallesDebates';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/debates" element={<Debates />} />
+          <Route path="/detalles-debates" element={<DetallesDebates />} />
         </Routes>
       </div>
     </Router>

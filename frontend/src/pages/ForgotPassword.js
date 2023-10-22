@@ -40,9 +40,13 @@ function ForgotPassword() {
             required
           />
         </div>
-        <button type="submit">Enviar</button>
+        <div className="input-container">
+          <button className="login" type="submit">Enviar</button>
+        </div>
       </form>
-      <button id="cancel" onClick={handleCancel}>Cancelar</button>
+      <div className="input-container">
+        <button id="cancel" onClick={handleCancel}>Cancelar</button>
+      </div>
     </div>
   );
 }

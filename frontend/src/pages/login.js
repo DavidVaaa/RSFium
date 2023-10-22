@@ -10,7 +10,7 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const { loginUser } = useAuth(); 
+  const { loginUser } = useAuth();
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
@@ -55,7 +55,9 @@ function Login() {
           />
         </div>
         <a href="/forgot-password" className="forgot-password">¿Olvidaste tu contraseña?</a>
-        <button type="submit">Iniciar Sesión</button>
+        <div className="input-container">
+          <button className="login" type="submit">Iniciar Sesión</button>
+        </div>
       </form>
       <p className="signup">¿No tienes una cuenta? <a href="/register">Regístrate</a></p>
     </div>

@@ -8,8 +8,6 @@ body {
     padding: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
 }
 
@@ -25,20 +23,34 @@ p {
     margin-bottom: 30px;
 }
 
-input[type="text"],
-input[type="password"] {
+.input-container {
+    position: relative;
+    width: 300px; /* Ancho fijo para los elementos */
+    margin: 0 auto; /* Centra horizontalmente los elementos */
+}
+
+.input-container input {
     width: 100%;
     padding-top: 8px;
     padding-bottom: 8px;
     margin-bottom: 15px;
     border: 1px solid #ccc;
-    padding-left: 30px;
+    padding-left: 30px; /* Espacio para el icono */
     box-sizing: border-box;
     font-size: 16px;
     font-family: 'Roboto serif';
 }
 
-button {
+.input-container .input-icon {
+    position: absolute;
+    top: 40%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #ccc;
+    font-size: 16px;
+}
+
+.login {
     background-color: #AE832D;
     color: #ffffff;
     padding: 10px;
@@ -46,8 +58,7 @@ button {
     cursor: pointer;
     font-family: 'Roboto serif';
     font-weight: bold;
-    width: 100%;
-    margin-bottom: 1px;
+    width: 100%; /* Ancho completo */
     margin-top: 20px;
     font-size: 16px;
 }
@@ -68,26 +79,11 @@ a {
     font-size: 14px;
 }
 
-.input-container {
-    position: relative;
-}
-
-.input-icon {
-    position: absolute;
-    top: 50%;
-    left: 10px;
-    transform: translateY(-50%);
-    color: #ccc;
-    padding-bottom: 15px;
-}
-
 .logo {
     width: 100px;
-    /* Ajusta el ancho según tu logotipo */
     height: auto;
-    /* Mantén la relación de aspecto */
     margin-bottom: 20px;
-    /* Agrega espacio entre el logo y el título */
+    margin-top: 20px;
 }
 
 #cancel {
@@ -99,7 +95,7 @@ a {
     font-family: 'Roboto serif';
     font-weight: bold;
     width: 100%;
-    margin-bottom: 20px;
+    margin-top: 20px;
     font-size: 16px;
 }
 

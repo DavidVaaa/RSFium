@@ -59,7 +59,9 @@ function Register() {
             required
           />
         </div>
-        <button type="submit">Registrate</button>
+        <div className="input-container">
+          <button className="login" type="submit">Registrate</button>
+        </div>
       </form>
       <p className="signup">¿Ya tienes una cuenta? <a href="/">Iniciar Sesión</a></p>
     </div>
