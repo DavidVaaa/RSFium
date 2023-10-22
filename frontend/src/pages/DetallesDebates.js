@@ -10,7 +10,26 @@ const DetallesDebates = () => {
   const [fechaNueva, setFechaNueva] = useState('');
 
   const iniciarDebate = () => {
-    // Aquí puedes realizar alguna acción cuando se inicie el debate, como enviar los datos al servidor.
+    // Crea un objeto con los datos del debate
+    const debateData = {
+      nombreDebate,
+      evaluacion,
+      motivo,
+      fechaOriginal,
+      fechaNueva,
+    };
+
+    // Realiza la solicitud POST al servidor utilizando Axios
+    axios
+      .post('/api/iniciar-debate', debateData)
+      .then((response) => {
+        // Aquí puedes manejar la respuesta de la API, por ejemplo, mostrar un mensaje de éxito al usuario.
+        console.log('Debate iniciado con éxito', response.data);
+      })
+      .catch((error) => {
+        // Maneja errores, por ejemplo, si la API devuelve un error.
+        console.error('Error al iniciar el debate', error);
+      });
   };
 
   return (
