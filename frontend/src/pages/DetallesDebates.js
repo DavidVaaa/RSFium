@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from '../components/header';
 import './DetallesDebates.css';
+import axios from 'axios';
 
 const DetallesDebates = () => {
   const [nombreDebate, setNombreDebate] = useState('');

@@ -3,12 +3,14 @@ import './login.css';
 import logo from '../images/logo.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
@@ -31,12 +33,13 @@ function Register() {
     }
     
     try {
-      const response = await axios.post('/api/register/', {
+        await axios.post('/api/register/', {
         username,
         password,
       });
       
-      // Registro exitoso, puedes redirigir al usuario a la página de inicio de sesión o realizar otras acciones.
+      // Registro exitoso, redirige al usuario a la página de inicio de sesión
+      navigate('/login'); // Ajusta la ruta según la estructura de tus rutas
     } catch (error) {
       console.error("Error al registrar usuario:", error);
       // Maneja el error, muestra un mensaje de error o realiza otras acciones apropiadas.
