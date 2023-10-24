@@ -24,7 +24,7 @@ function ForgotPassword() {
     event.preventDefault();
   
     try {
-      const response = await axios.post('/api/reset-password', { email: username });
+      const response = await axios.post('/api/reset-password/', { email: username });
       // Aquí puedes manejar la respuesta de la API, por ejemplo, mostrar un mensaje de éxito al usuario.
       console.log('Contraseña restablecida con éxito', response.data);
     } catch (error) {

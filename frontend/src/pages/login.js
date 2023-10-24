@@ -31,7 +31,7 @@ function Login() {
     loginUser(userData);
     try {
       // Realiza la solicitud de inicio de sesión al backend
-      const response = await axios.post('/api/login', loginUser);
+      const response = await axios.post('/api/login/', loginUser);
       // Manejar la respuesta
       console.log('Inicio de sesión exitoso:', response.data);
       // Redirige a la página de inicio

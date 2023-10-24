@@ -22,7 +22,7 @@ const DetallesDebates = () => {
 
     // Realiza la solicitud POST al servidor utilizando Axios
     axios
-      .post('/api/iniciar-debate', debateData)
+      .post('/api/iniciar-debate/', debateData)
       .then((response) => {
         // Aquí puedes manejar la respuesta de la API, por ejemplo, mostrar un mensaje de éxito al usuario.
         console.log('Debate iniciado con éxito', response.data);
