@@ -50,11 +50,12 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def user_login(self, request):
         username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = CustomUser.objects.filter(username=username).first()
+        print(user)
         if user is not None:
             login(request, user)
             return Response({'message': 'Inicio de sesión exitoso'}, status=status.HTTP_200_OK)
+
         return Response({'message': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
     @action(detail=False, methods=['post'])
