@@ -14,7 +14,6 @@ urlpatterns = [
     path('api/register/', views.CustomUserViewSet.as_view({'post': 'register'}), name='customuser-register'),
     path('api/login/', views.CustomUserViewSet.as_view({'post': 'user_login'}), name='customuser-login'),
     path('api/logout/', views.CustomUserViewSet.as_view({'post': 'user_logout'}), name='customuser-logout'),
-    path('api/materias_user/', MateriaViewSet.as_view({}))
     path('api/materias/unirse/<int:pk>/', MateriaViewSet.as_view({'post': 'unirse_a_materia'}), name='materia-unirse'),
     path('materia/<int:materia_id>/evaluaciones/crear/', views.EvaluacionViewSet.as_view({'post': 'crear_evaluacion'}),
          name='crear_evaluacion'),

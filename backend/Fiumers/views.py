@@ -57,7 +57,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class MateriaViewSet(viewsets.ModelViewSet):
     queryset = Materia.objects.all()
     serializer_class = MateriaSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request):
         serializer = MateriaSerializer(data=request.data)
