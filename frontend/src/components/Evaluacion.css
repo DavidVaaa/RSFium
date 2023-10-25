@@ -1,0 +1,17 @@
+.evaluations-list {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .evaluation {
+    border: 1px solid #ccc;
+    padding: 0px;
+    margin: 10px;
+  }
+  
+  .evaluation-data {
+    color: #888;
+  }
+  
+
+  

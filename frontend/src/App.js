@@ -6,6 +6,7 @@ import Home from './pages/home';
 import Calendar from './pages/Calendar';
 import Debates from './pages/Debates';
 import DetallesDebates from './pages/DetallesDebates';
+import Chats from './pages/Chats';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/debates" element={<Debates />} />
           <Route path="/detalles-debates" element={<DetallesDebates />} />
+          <Route path="/chats/:id" element={<Chats />} />
         </Routes>
       </div>
     </Router>
