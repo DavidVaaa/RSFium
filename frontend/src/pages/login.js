@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons'; // Importa los iconos de usuario y candado
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import axios from 'axios';
+import axios from './axiosConfig';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -31,7 +31,7 @@ function Login() {
     loginUser(userData);
     try {
       // Realiza la solicitud de inicio de sesión al backend
-      const response = await axios.post('/api/login/', loginUser);
+      const response = await axios.post('/api/login/', userData);
       // Manejar la respuesta
       console.log('Inicio de sesión exitoso:', response.data);
       // Redirige a la página de inicio

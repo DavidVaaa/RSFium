@@ -4,7 +4,7 @@ import logo from '../images/logo.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons'; // Importa los iconos de usuario y candado
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from './axiosConfig';
 
 function ForgotPassword() {
   const [username, setUsername] = useState('');

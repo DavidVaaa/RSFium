@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Header from '../components/header';
 import './DetallesDebates.css';
-import axios from 'axios';
+import axios from './axiosConfig';
 
 const DetallesDebates = () => {
   const [nombreDebate, setNombreDebate] = useState('');

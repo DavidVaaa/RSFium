@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from "../components/header";
 import CourseCard from "../components/CourseCard";
 import tic3 from "../images/tic3.png";
-import axios from 'axios';
+import axios from './axiosConfig';
 
 const Home = () => {
   const [userCourses, setUserCourses] = useState([]);

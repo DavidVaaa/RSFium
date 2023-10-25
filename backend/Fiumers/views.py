@@ -25,20 +25,27 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def register(self, request):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data  # Obtiene los datos de la solicitud
+        data['rol'] = 'Student'  # Establece el rol en "Student" por defecto
+
+        serializer = self.get_serializer(data=data)
+        
         if serializer.is_valid():
             user = serializer.save()
             return Response({'message': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(detail=False, methods=['post'])
     def user_login(self, request):
         username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = CustomUser.objects.filter(username=username).first()
+        print(user)
         if user is not None:
             login(request, user)
             return Response({'message': 'Inicio de sesión exitoso'}, status=status.HTTP_200_OK)
+
         return Response({'message': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
     @action(detail=False, methods=['post'])

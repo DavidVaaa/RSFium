@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/header';
 import Debate from '../components/Debate';
-import axios from 'axios'; // Importa Axios
+import axios from './axiosConfig'; // Importa Axios
 import './Debates.css';
 import { useNavigate } from 'react-router-dom';
 
