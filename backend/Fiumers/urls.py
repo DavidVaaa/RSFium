@@ -12,6 +12,7 @@ router.register(r'debates', views.DebateViewSet, basename='debate')
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api/register/', views.CustomUserViewSet.as_view({'post': 'register'}), name='customuser-register'),
+    path('api/users/update/<int:pk>/', views.CustomUserViewSet.as_view({'get': 'update_user_data', 'put': 'update_user_data'}), name='update-user-data'),
     path('api/login/', views.CustomUserViewSet.as_view({'post': 'user_login'}), name='customuser-login'),
     path('api/logout/', views.CustomUserViewSet.as_view({'post': 'user_logout'}), name='customuser-logout'),
     path('api/materias/unirse/<int:pk>/', MateriaViewSet.as_view({'post': 'unirse_a_materia'}), name='materia-unirse'),

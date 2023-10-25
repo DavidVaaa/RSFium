@@ -31,6 +31,22 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['put'])
+    def update_user_data(self, request, pk=None):
+        user = self.get_object()
+        if request.method == 'GET':
+            # Aquí puedes recuperar y mostrar los datos del usuario
+            serializer = CustomUserSerializer(user)
+            return Response(serializer.data)
+
+        elif request.method == 'PUT':
+        # Aquí puedes actualizar los datos del usuario
+            serializer = CustomUserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'message': 'Datos de usuario actualizados con éxito'})
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=False, methods=['post'])
     def user_login(self, request):
         username = request.data.get('username')
@@ -57,18 +73,26 @@ class MateriaViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             # Verifica si el usuario actual tiene permiso para crear materias (puedes ajustar esta lógica)
-            if request.user.rol == 'Teacher':
+            if request.user.rol == 'Staff':
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
+                print(request.user.rol)
                 return Response({'message': 'No autorizado para crear materias'}, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
-        if request.user.rol == 'Student':
-            # Filtra las materias asociadas al alumno actual
-            queryset = self.queryset.filter(users=request.user)
+        if request.user.rol in ['Student', 'Teacher', 'Staff']:
+            if request.user.rol == 'Student':
+                # Filtra las materias asociadas al alumno actual
+                queryset = self.queryset.filter(users=request.user)
+            elif request.user.rol == 'Teacher':
+                # Filtra las materias que el profesor está enseñando
+                queryset = self.queryset.filter(profesor=request.user)
+            else:  # Si el rol es "Staff", se muestran todas las materias
+                queryset = self.queryset.all()
+
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
         else:
