@@ -25,10 +25,15 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def register(self, request):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data  # Obtiene los datos de la solicitud
+        data['rol'] = 'Student'  # Establece el rol en "Student" por defecto
+
+        serializer = self.get_serializer(data=data)
+        
         if serializer.is_valid():
             user = serializer.save()
             return Response({'message': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['put'])
@@ -67,7 +72,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class MateriaViewSet(viewsets.ModelViewSet):
     queryset = Materia.objects.all()
     serializer_class = MateriaSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request):
         serializer = MateriaSerializer(data=request.data)
