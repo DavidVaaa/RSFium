@@ -10,7 +10,6 @@ class CustomUser(AbstractUser):
         ('Staff', 'Staff'),
         ('Teacher', 'Teacher'),
     )
-
     rol = models.CharField(max_length=10, choices=ROL_CHOICES)
     description = models.TextField(blank=True)
     phone_number = models.CharField(max_length=12, blank=True)
@@ -18,10 +17,7 @@ class CustomUser(AbstractUser):
     twitter = models.URLField(blank=True)
     linkedin = models.URLField(blank=True)
     materias = models.ManyToManyField('Materia', related_name='users', blank=True)
-    username = models.CharField(max_length=30, unique=True)
-    password = models.CharField(max_length=128)
 
-    USERNAME_FIELD = 'username'
 
     def tiene_rol_adecuado(self):
         # Lista de roles permitidos ("Student" y "Teacher")

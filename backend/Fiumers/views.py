@@ -2,13 +2,16 @@ from django.contrib.auth import login, authenticate, logout
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from rest_framework import status, viewsets, permissions
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, ComentarioForm, EvaluacionForm
 from .models import Materia, CustomUser, Comentario, Chat, Evaluacion, Debate
-from .serializers import CustomUserSerializer, MateriaSerializer, EvaluacionSerializer, DebateSerializer
+from .serializers import CustomUserSerializer, MateriaSerializer, EvaluacionSerializer, DebateSerializer, \
+    ComentarioSerializer, UserLoginSerializer, UserRegisterSerializer
 
 
 def home(request):
@@ -17,6 +20,44 @@ def home(request):
 
     # Pasa los datos a la plantilla
     return render(request, 'home.html', {'materias': materias})
+
+
+class UserRegister(CreateAPIView):
+    serializer_class = UserRegisterSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            user.set_password(request.data['password'])  # Hash the password
+            user.save()
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'user': serializer.data, 'token': token.key})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserLogin(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        # Autenticar al usuario
+        user = authenticate(request, username=username, password=password)
+        print(user)
+        if user is not None:
+            login(request, user)
+            serializer = UserLoginSerializer(user)
+            return Response({'user': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserLogout(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response(status=status.HTTP_200_OK)
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
@@ -40,7 +81,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         elif request.method == 'PUT':
-        # Aquí puedes actualizar los datos del usuario
+            # Aquí puedes actualizar los datos del usuario
             serializer = CustomUserSerializer(user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -50,7 +91,8 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def user_login(self, request):
         username = request.data.get('username')
-        user = CustomUser.objects.filter(username=username).first()
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
         print(user)
         if user is not None:
             login(request, user)
@@ -67,7 +109,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class MateriaViewSet(viewsets.ModelViewSet):
     queryset = Materia.objects.all()
     serializer_class = MateriaSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request):
         serializer = MateriaSerializer(data=request.data)
@@ -78,7 +119,6 @@ class MateriaViewSet(viewsets.ModelViewSet):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
-                print(request.user.rol)
                 return Response({'message': 'No autorizado para crear materias'}, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -86,6 +126,7 @@ class MateriaViewSet(viewsets.ModelViewSet):
     def list(self, request):
         if request.user.rol in ['Student', 'Teacher', 'Staff']:
             if request.user.rol == 'Student':
+                print("Entro a lista de materias de alumno")
                 # Filtra las materias asociadas al alumno actual
                 queryset = self.queryset.filter(users=request.user)
             elif request.user.rol == 'Teacher':
@@ -99,6 +140,7 @@ class MateriaViewSet(viewsets.ModelViewSet):
         else:
             return Response({'message': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
 
+    @action(detail=False, methods=['post'])
     def unirse_a_materia(self, request, materia_id):
         usuario_actual = request.user
 
@@ -108,12 +150,13 @@ class MateriaViewSet(viewsets.ModelViewSet):
         except Materia.DoesNotExist:
             return Response({'message': 'Materia no encontrada'}, status=status.HTTP_404_NOT_FOUND)
 
-        roles_permitidos = ["Student", "Teacher"]
-        if usuario_actual.rol in roles_permitidos:
+        # Puedes ajustar esta lógica según tus necesidades
+        # Verifica que el usuario no esté ya unido a la materia
+        if usuario_actual not in materia.users.all():
             materia.users.add(usuario_actual)
             return Response({'message': 'Unido exitosamente'}, status=status.HTTP_200_OK)
         else:
-            return Response({'message': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'message': 'Ya estás unido a esta materia'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EvaluacionViewSet(viewsets.ModelViewSet):
@@ -156,41 +199,40 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-def crear_comentario(request, materia_id, chat_id):
-    # Obtén el usuario actual
-    usuario_actual = request.user
+class ComentarioViewSet(viewsets.ModelViewSet):
+    queryset = Comentario.objects.all()
+    serializer_class = ComentarioSerializer
 
-    materia = Materia.objects.get(id=materia_id)
-    chat = Chat.objects.get(id=chat_id)
+    @action(detail=False, methods=['post'])
+    def crear_comentario(self, request, materia_id, chat_id):
+        usuario_actual = request.user
+        try:
+            materia = Materia.objects.get(id=materia_id)
+            chat = Chat.objects.get(id=chat_id)
+        except Materia.DoesNotExist:
+            return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
+        except Chat.DoesNotExist:
+            return Response({'message': 'El chat especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Verifica si el usuario está autorizado para publicar comentarios en este chat
-    if not usuario_actual.tiene_rol_adecuado() or chat.materia != materia:
-        return redirect('pagina_de_error')
+        if usuario_actual.tiene_rol_adecuado() and chat.materia == materia:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(chat=chat, usuario=usuario_actual)
+                return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'No estás autorizado para realizar esta acción'},
+                            status=status.HTTP_403_FORBIDDEN)
 
-    if request.method == 'POST':
-        # Si la solicitud es un POST, procesa el formulario de comentario
-        formulario = ComentarioForm(request.POST)
-
-        if formulario.is_valid():
-            contenido = formulario.cleaned_data['contenido']
-            comentario = Comentario(chat=chat, usuario=usuario_actual, contenido=contenido)
-            comentario.save()
-            return redirect('pagina_del_chat', materia_id=materia_id, chat_id=chat_id)
-    else:
-        # Si la solicitud no es un POST, muestra el formulario de comentario vacío
-        formulario = ComentarioForm()
-
-    return render(request, 'crear_comentario.html', {'formulario': formulario})
-
-
-def comentarios_del_chat(request, chat_id):
-    # Obtén el chat correspondiente
-    chat = Chat.objects.get(id=chat_id)
-
-    # Obtén todos los comentarios asociados a ese chat
-    comentarios = Comentario.objects.filter(chat=chat)
-
-    return render(request, 'comentarios_del_chat.html', {'chat': chat, 'comentarios': comentarios})
+    @action(detail=False, methods=['get'])
+    def comentarios_del_chat(self, request, chat_id):
+        try:
+            chat = Chat.objects.get(id=chat_id)
+        except Chat.DoesNotExist:
+            return Response({'message': 'El chat especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
+        comentarios = Comentario.objects.filter(chat=chat)
+        serializer = ComentarioSerializer(comentarios, many=True)
+        return Response(serializer.data)
 
 
 class DebateViewSet(viewsets.ModelViewSet):

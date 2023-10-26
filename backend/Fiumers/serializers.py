@@ -8,6 +8,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = '__all__'
 
+class UserRegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'username', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
 
 class MateriaSerializer(serializers.ModelSerializer):
     class Meta:
