@@ -9,7 +9,7 @@ const Home = () => {
 
   useEffect(() => {
     // Realizar la solicitud GET a la API de cursos del usuario
-    axios.get('/api/user-courses/').then((response) => {
+    axios.get('/api/materias/').then((response) => {
       setUserCourses(response.data);
     });
   }, []);
@@ -19,7 +19,6 @@ const Home = () => {
       <Header />
       <h2 id="title">Mis cursos</h2>
       <div className="courses">
- implementations
         {userCourses.map((course, index) => (
           <CourseCard
             key={index}
