@@ -19,7 +19,6 @@ const Home = () => {
       <Header />
       <h2 id="title">Mis cursos</h2>
       <div className="courses">
- implementations
         {userCourses.map((course, index) => (
           <CourseCard
             key={index}
