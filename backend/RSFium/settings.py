@@ -47,7 +47,8 @@ AUTH_USER_MODEL = "Fiumers.CustomUser"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
 }
 
@@ -97,8 +98,8 @@ DATABASES = {
         'NAME': 'Fiumers',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 

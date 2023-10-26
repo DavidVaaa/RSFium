@@ -26,13 +26,12 @@ class UserRegister(CreateAPIView):
     serializer_class = UserRegisterSerializer
 
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             user.set_password(request.data['password'])  # Hash the password
             user.save()
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({'user': serializer.data, 'token': token.key})
+            return Response({'message': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -40,7 +39,6 @@ class UserLogin(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-
         # Autenticar al usuario
         user = authenticate(request, username=username, password=password)
         print(user)
@@ -110,6 +108,16 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         logout(request)
         return Response({'message': 'Cierre de sesión exitoso'}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'])
+    def list_materias(self, request, pk=None):
+        try:
+            usuario = CustomUser.objects.get(id=pk)
+            materias = usuario.materias.all()
+            serializer = MateriaSerializer(materias, many=True)
+            return Response(serializer.data)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class MateriaViewSet(viewsets.ModelViewSet):
     queryset = Materia.objects.all()
@@ -117,7 +125,7 @@ class MateriaViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         serializer = MateriaSerializer(data=request.data)
-
+        print(request.user.rol)
         if serializer.is_valid():
             # Verifica si el usuario actual tiene permiso para crear materias (puedes ajustar esta lógica)
             if request.user.rol == 'Staff':
@@ -147,21 +155,23 @@ class MateriaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def unirse_a_materia(self, request, materia_id):
-        usuario_actual = request.user
+        # Obtén el usuario al que quieres unir a la materia
+        username_to_add = request.data.get('username')  # Debes proporcionar el nombre de usuario que deseas unir
+        user_to_add = CustomUser.objects.get(username=username_to_add)
 
         try:
             # Obtén la materia a la que el usuario quiere unirse
-            materia = self.queryset.get(id=materia_id)
+            materia = self.queryset.get(codigo=materia_id)
         except Materia.DoesNotExist:
             return Response({'message': 'Materia no encontrada'}, status=status.HTTP_404_NOT_FOUND)
 
         # Puedes ajustar esta lógica según tus necesidades
         # Verifica que el usuario no esté ya unido a la materia
-        if usuario_actual not in materia.users.all():
-            materia.users.add(usuario_actual)
-            return Response({'message': 'Unido exitosamente'}, status=status.HTTP_200_OK)
+        if user_to_add not in materia.users.all():
+            materia.users.add(user_to_add)
+            return Response({'message': 'Usuario unido a la materia exitosamente'}, status=status.HTTP_200_OK)
         else:
-            return Response({'message': 'Ya estás unido a esta materia'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'El usuario ya está unido a esta materia'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EvaluacionViewSet(viewsets.ModelViewSet):
@@ -194,9 +204,7 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
             materia = Materia.objects.get(id=materia_id)
         except Materia.DoesNotExist:
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Verificar si el usuario actual es el profesor de la materia o tiene permisos adecuados
-        # Aquí puedes agregar la lógica de autorización según tus requerimientos
+        # Ver posible logica de autorizacion
 
         # Obtén las evaluaciones de la materia
         evaluaciones = Evaluacion.objects.filter(codigo_materia=materia)
