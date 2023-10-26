@@ -8,6 +8,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = '__all__'
 
+
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -38,6 +39,14 @@ class EvaluacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluacion
         fields = '__all__'
+
+
+class EvaluacionFechaSerializer(serializers.ModelSerializer):
+    fecha = serializers.DateField(source='fecha_evaluacion')
+
+    class Meta:
+        model = Evaluacion
+        fields = ['fecha']
 
 
 class DebateSerializer(serializers.ModelSerializer):

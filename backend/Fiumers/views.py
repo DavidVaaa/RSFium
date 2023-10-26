@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from .models import Materia, CustomUser, Comentario, Chat, Evaluacion, Debate
 from .serializers import CustomUserSerializer, MateriaSerializer, EvaluacionSerializer, DebateSerializer, \
-    ComentarioSerializer, UserLoginSerializer, UserRegisterSerializer
+    ComentarioSerializer, UserLoginSerializer, UserRegisterSerializer, EvaluacionFechaSerializer
 
 
 def home(request):
@@ -68,11 +68,11 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         data['rol'] = 'Student'  # Establece el rol en "Student" por defecto
 
         serializer = self.get_serializer(data=data)
-        
+
         if serializer.is_valid():
             user = serializer.save()
             return Response({'message': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['put'])
@@ -182,7 +182,7 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
     def crear_evaluacion(self, request, materia_id):
         # Obtener la materia correspondiente
         try:
-            materia = Materia.objects.get(id=materia_id)
+            materia = Materia.objects.get(codigo=materia_id)
         except Materia.DoesNotExist:
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -201,7 +201,7 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
     def obtener_evaluaciones_de_materia(self, request, materia_id):
         # Obtén la materia correspondiente
         try:
-            materia = Materia.objects.get(id=materia_id)
+            materia = Materia.objects.get(codigo=materia_id)
         except Materia.DoesNotExist:
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
         # Ver posible logica de autorizacion
@@ -209,6 +209,57 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
         # Obtén las evaluaciones de la materia
         evaluaciones = Evaluacion.objects.filter(codigo_materia=materia)
         serializer = self.get_serializer(evaluaciones, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def obtener_fechas_evaluaciones_alumno(self, request):
+        # Obtén las materias en las que el usuario actual es un estudiante
+        materias_del_alumno = Materia.objects.filter(users=request.user, rol='Student')
+
+        # Filtra las evaluaciones de esas materias
+        evaluaciones = Evaluacion.objects.filter(codigo_materia__in=materias_del_alumno)
+
+        # Utiliza el nuevo serializador para incluir solo las fechas
+        serializer = EvaluacionFechaSerializer(evaluaciones, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DebateViewSet(viewsets.ModelViewSet):
+    queryset = Debate.objects.all()
+    serializer_class = DebateSerializer
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def crear_debate(self, request, evaluacion_id):
+        try:
+            evaluacion = Evaluacion.objects.get(id=evaluacion_id)
+        except Evaluacion.DoesNotExist:
+            return Response({'message': 'La evaluación especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(evaluacion=evaluacion)
+            return Response({'message': 'Debate creado exitosamente'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Se debe modificar el cerrar_debate segun como se quiera implementar en el front
+    # La idea es que luego se modifique la fecha de la evaluacion asociada o no, y que en ambos casos se borre el debate
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
+    def cerrar_debate(self, request, pk):
+        debate = self.get_object()
+        if request.user.rol == 'Teacher':
+            debate.cerrado = True
+            debate.save()
+            return Response({'message': 'Debate cerrado exitosamente'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def obtener_debates_evaluacion(self, request, evaluacion_id):
+        try:
+            evaluacion = Evaluacion.objects.get(id=evaluacion_id)
+        except Evaluacion.DoesNotExist:
+            return Response({'message': 'La evaluación especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
+
+        debates = Debate.objects.filter(evaluacion=evaluacion)
+        serializer = DebateSerializer(debates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -246,42 +297,3 @@ class ComentarioViewSet(viewsets.ModelViewSet):
         comentarios = Comentario.objects.filter(chat=chat)
         serializer = ComentarioSerializer(comentarios, many=True)
         return Response(serializer.data)
-
-
-class DebateViewSet(viewsets.ModelViewSet):
-    queryset = Debate.objects.all()
-    serializer_class = DebateSerializer
-
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
-    def crear_debate(self, request, evaluacion_id):
-        try:
-            evaluacion = Evaluacion.objects.get(id=evaluacion_id)
-        except Evaluacion.DoesNotExist:
-            return Response({'message': 'La evaluación especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(evaluacion=evaluacion, usuario=request.user)
-            return Response({'message': 'Debate creado exitosamente'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # Se debe modificar el cerrar_debate segun como se quiera implementar en el front
-    # La idea es que luego se modifique la fecha de la evaluacion asociada o no, y que en ambos casos se borre el debate
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
-    def cerrar_debate(self, request, pk):
-        debate = self.get_object()
-        if request.user.rol == 'Teacher':
-            debate.cerrado = True
-            debate.save()
-            return Response({'message': 'Debate cerrado exitosamente'}, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-    def obtener_debates_evaluacion(self, request, evaluacion_id):
-        try:
-            evaluacion = Evaluacion.objects.get(id=evaluacion_id)
-        except Evaluacion.DoesNotExist:
-            return Response({'message': 'La evaluación especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
-
-        debates = Debate.objects.filter(evaluacion=evaluacion)
-        serializer = DebateSerializer(debates, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
