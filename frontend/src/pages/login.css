@@ -25,7 +25,7 @@ p {
 
 .input-container {
     position: relative;
-    width: 300px; /* Ancho fijo para los elementos */
+    width: 300px; 
     margin: 0 auto; /* Centra horizontalmente los elementos */
 }
 

@@ -4,6 +4,7 @@ import logo from '../images/logo.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons'; // Importa los iconos de usuario y candado
 import { useNavigate } from 'react-router-dom';
+import axios from './axiosConfig';
 
 function ForgotPassword() {
   const [username, setUsername] = useState('');
@@ -19,9 +20,19 @@ function ForgotPassword() {
     navigate('/');
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+  
+    try {
+      const response = await axios.post('/api/reset-password/', { email: username });
+      // Aquí puedes manejar la respuesta de la API, por ejemplo, mostrar un mensaje de éxito al usuario.
+      console.log('Contraseña restablecida con éxito', response.data);
+    } catch (error) {
+      // Maneja errores, como un correo electrónico no registrado.
+      console.error('Error al restablecer la contraseña', error);
+    }
   };
+  
 
 
   return (
