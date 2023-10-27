@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import CustomUser, Materia, Comentario, Chat, Debate, Evaluacion, UsuarioMateria
+from .models import CustomUser, Materia, Comentario, Chat, Debate, Evaluacion, UsuarioMateria, ComentarioDebate
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -41,17 +41,23 @@ class EvaluacionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EvaluacionFechaSerializer(serializers.ModelSerializer):
+class EvaluacionCalendarioSerializer(serializers.ModelSerializer):
     fecha = serializers.DateField(source='fecha_evaluacion')
 
     class Meta:
         model = Evaluacion
-        fields = ['fecha']
+        fields = ['nombre', 'fecha']
 
 
 class DebateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Debate
+        fields = '__all__'
+
+
+class ComentarioDebateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComentarioDebate
         fields = '__all__'
 
 

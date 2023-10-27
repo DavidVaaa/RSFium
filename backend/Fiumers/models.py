@@ -62,10 +62,20 @@ class Debate(models.Model):
     nombre = models.CharField(max_length=255)
     fecha_nueva = models.DateField()
     fecha_original = models.DateField()
-
+    cerrado = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nombre
+
+class ComentarioDebate(models.Model):
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comentarios')
+    debate = models.ForeignKey(Debate, on_delete=models.CASCADE, related_name='comentarios')
+    contenido = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Comentario de {self.usuario} en {self.debate}'
+
 
 
 class Chat(models.Model):

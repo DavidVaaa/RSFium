@@ -9,9 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Materia, CustomUser, Comentario, Chat, Evaluacion, Debate
+from .models import Materia, CustomUser, Comentario, Chat, Evaluacion, Debate, ComentarioDebate
 from .serializers import CustomUserSerializer, MateriaSerializer, EvaluacionSerializer, DebateSerializer, \
-    ComentarioSerializer, UserLoginSerializer, UserRegisterSerializer, EvaluacionFechaSerializer
+    ComentarioSerializer, UserLoginSerializer, UserRegisterSerializer, EvaluacionCalendarioSerializer, \
+    ComentarioDebateSerializer
 
 
 def home(request):
@@ -62,19 +63,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
-    @action(detail=False, methods=['post'])
-    def register(self, request):
-        data = request.data  # Obtiene los datos de la solicitud
-        data['rol'] = 'Student'  # Establece el rol en "Student" por defecto
-
-        serializer = self.get_serializer(data=data)
-
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({'message': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     @action(detail=False, methods=['put'])
     def update_user_data(self, request, pk=None):
         user = self.get_object()
@@ -90,23 +78,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
                 serializer.save()
                 return Response({'message': 'Datos de usuario actualizados con éxito'})
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=False, methods=['post'])
-    def user_login(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(request, username=username, password=password)
-        print(user)
-        if user is not None:
-            login(request, user)
-            return Response({'message': 'Inicio de sesión exitoso'}, status=status.HTTP_200_OK)
-
-        return Response({'message': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    @action(detail=False, methods=['post'])
-    def user_logout(self, request):
-        logout(request)
-        return Response({'message': 'Cierre de sesión exitoso'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def list_materias(self, request, pk=None):
@@ -213,14 +184,19 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def obtener_fechas_evaluaciones_alumno(self, request):
-        # Obtén las materias en las que el usuario actual es un estudiante
-        materias_del_alumno = Materia.objects.filter(users=request.user, rol='Student')
+        if request.user.rol == 'Student':
+            materias_del_usuario = Materia.objects.filter(users=request.user, rol='Student')
+        elif request.user.rol == 'Teacher':
+            materias_del_usuario = Materia.objects.filter(profesor=request.user)
+        else:
+            # Para otros roles, no se mostrarán las evaluaciones
+            materias_del_usuario = Materia.objects.all()
 
-        # Filtra las evaluaciones de esas materias
-        evaluaciones = Evaluacion.objects.filter(codigo_materia__in=materias_del_alumno)
+            # Filtra las evaluaciones de esas materias
+        evaluaciones = Evaluacion.objects.filter(codigo_materia__in=materias_del_usuario)
 
         # Utiliza el nuevo serializador para incluir solo las fechas
-        serializer = EvaluacionFechaSerializer(evaluaciones, many=True)
+        serializer = EvaluacionCalendarioSerializer(evaluaciones, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -228,6 +204,25 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
 class DebateViewSet(viewsets.ModelViewSet):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
+
+    def list(self, request):
+        user = request.user
+
+        if user.rol == 'Staff':
+            # Si el usuario tiene rol de 'Staff', devuelve todos los debates
+            queryset = Debate.objects.all()
+        elif user.rol == 'Student':
+            # Si el usuario es 'Student', filtra debates de evaluaciones de materias asociadas al alumno
+            queryset = Debate.objects.filter(evaluacion__codigo_materia__users=user)
+        elif user.rol == 'Teacher':
+            # Si el usuario es 'Teacher', filtra debates de materias donde es el profesor
+            queryset = Debate.objects.filter(evaluacion__codigo_materia__profesor=user)
+        else:
+            # Otros casos no autorizados
+            return Response({'message': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def crear_debate(self, request, evaluacion_id):
@@ -261,6 +256,34 @@ class DebateViewSet(viewsets.ModelViewSet):
         debates = Debate.objects.filter(evaluacion=evaluacion)
         serializer = DebateSerializer(debates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ComentarioDebateViewSet(viewsets.ModelViewSet):
+    queryset = ComentarioDebate.objects.all()
+    serializer_class = ComentarioDebateSerializer
+
+    @action(detail=False, methods=['get'])
+    def get_comentarios_de_debate(self, request, debate_id):
+        comentarios = ComentarioDebate.objects.filter(debate__id=debate_id)
+        serializer = self.get_serializer(comentarios, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def crear_comentario_de_debate(self, request, debate_id):
+        # Obtén el debate
+        debate = Debate.objects.get(id=debate_id)
+
+        # Verifica si el debate está cerrado
+        if debate.cerrado:
+            return Response({'message': 'No puedes comentar en un debate cerrado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Crea el comentario
+        serializer = ComentarioDebateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(debate=debate, usuario=request.user)
+            return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ComentarioViewSet(viewsets.ModelViewSet):
