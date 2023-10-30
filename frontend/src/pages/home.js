@@ -3,13 +3,14 @@ import Header from "../components/header";
 import CourseCard from "../components/CourseCard";
 import tic3 from "../images/tic3.png";
 import axios from './axiosConfig';
+import './home.css';
 
 const Home = () => {
   const [userCourses, setUserCourses] = useState([]);
 
   useEffect(() => {
-    // Realizar la solicitud GET a la API de cursos del usuario
-    axios.get('/api/materias/').then((response) => {
+    // EL id esta hardcodeado, se debe importar
+    axios.get('/api/materias/obtener/9').then((response) => {
       setUserCourses(response.data);
     });
   }, []);
@@ -22,8 +23,8 @@ const Home = () => {
         {userCourses.map((course, index) => (
           <CourseCard
             key={index}
-            courseName={course.courseName}
-            professor={course.professor}
+            courseName={course.nombre}
+            professor={course.nombre_profesor}
             imageUrl={tic3}
           />
         ))}

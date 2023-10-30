@@ -21,6 +21,8 @@ urlpatterns = [
     path('api/users/update/<int:pk>/', views.CustomUserViewSet.as_view({'get': 'update_user_data', 'put': 'update_user_data'}), name='update-user-data'),
     path('api/materias/unirse/<int:materia_id>/', views.MateriaViewSet.as_view({'post': 'unirse_a_materia'}),
          name='materia-unirse'),
+    path('api/materias/obtener/<int:user_id>/', views.MateriaViewSet.as_view({'get': 'obtener_materias_usuario'}), name='obtener-materias-usuario'),
+
     path('api/materia/<int:materia_id>/evaluaciones/crear/', views.EvaluacionViewSet.as_view({'post': 'crear_evaluacion'}), name='crear_evaluacion'),
     path('api/materia/<int:materia_id>/evaluaciones/', views.EvaluacionViewSet.as_view({'get': 'obtener_evaluaciones_de_materia'}), name='obtener_evaluaciones_de_materia'),
     path('api/evaluaciones/fechas/', views.EvaluacionViewSet.as_view({'get': 'obtener_fechas_evaluaciones_alumno'}), name='obtener-fechas-evaluaciones-alumno'),

@@ -38,21 +38,28 @@ class UserRegister(CreateAPIView):
 
 class UserLogin(APIView):
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        # Autenticar al usuario
-        user = authenticate(request, username=username, password=password)
-        print(user)
-        if user is not None:
-            login(request, user)
-            serializer = UserLoginSerializer(user)
-            return Response({'user': serializer.data}, status=status.HTTP_200_OK)
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+                response_data = {
+                    'id': user.id,
+                    'username': user.username,
+                    'message': 'Login successful',
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class UserLogout(APIView):
-    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         logout(request)
@@ -96,7 +103,6 @@ class MateriaViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         serializer = MateriaSerializer(data=request.data)
-        print(request.user.rol)
         if serializer.is_valid():
             # Verifica si el usuario actual tiene permiso para crear materias (puedes ajustar esta lógica)
             if request.user.rol == 'Staff':
@@ -106,6 +112,28 @@ class MateriaViewSet(viewsets.ModelViewSet):
                 return Response({'message': 'No autorizado para crear materias'}, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'])
+    def obtener_materias_usuario(self, request, user_id):
+        print("Este print funciona")
+        try:
+            # Obtiene el usuario por nombre de usuario
+            usuario = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        if usuario.rol == 'Student':
+            print("Entro a lista de materias de alumno")
+            # Filtra las materias asociadas al alumno actual
+            queryset = Materia.objects.filter(users=usuario)
+        elif usuario.rol == 'Teacher':
+            # Filtra las materias que el profesor está enseñando
+            queryset = Materia.objects.filter(profesor=usuario)
+        else:  # Si el rol es "Staff", se muestran todas las materias
+            queryset = self.queryset.all()
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def list(self, request):
         if request.user.rol in ['Student', 'Teacher', 'Staff']:
@@ -224,7 +252,7 @@ class DebateViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['post'])
     def crear_debate(self, request, evaluacion_id):
         try:
             evaluacion = Evaluacion.objects.get(id=evaluacion_id)
@@ -238,7 +266,7 @@ class DebateViewSet(viewsets.ModelViewSet):
 
     # Se debe modificar el cerrar_debate segun como se quiera implementar en el front
     # La idea es que luego se modifique la fecha de la evaluacion asociada o no, y que en ambos casos se borre el debate
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['patch'])
     def cerrar_debate(self, request, pk):
         debate = self.get_object()
         if request.user.rol == 'Teacher':
@@ -246,7 +274,7 @@ class DebateViewSet(viewsets.ModelViewSet):
             debate.save()
             return Response({'message': 'Debate cerrado exitosamente'}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['get'])
     def obtener_debates_evaluacion(self, request, evaluacion_id):
         try:
             evaluacion = Evaluacion.objects.get(id=evaluacion_id)
