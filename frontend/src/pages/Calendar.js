@@ -1,16 +1,48 @@
-//npm install react-big-calendar
-
 import React, { useState, useEffect } from 'react';
-import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import Header from '../components/header';
-import axios from './axiosConfig';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import esLocale from '@fullcalendar/core/locales/es'; // Importa la localización en español
+import esLocale from '@fullcalendar/core/locales/es';
+import Header from '../components/header';
+import axios from './axiosConfig';
+import { useAuth } from '../AuthContext';
 
 const Calendar = () => {
+    const { user } = useAuth();
+    const [userEvents, setUserEvents] = useState([]);
+
+    useEffect(() => {
+        if (user) {
+            axios.get(`/api/evaluaciones/fechas/${user.userId}`).then((response) => {
+                setUserEvents(response.data);
+            });
+        }
+    }, [user]);
+
+    const events = userEvents.map((evaluation) => ({
+        title: evaluation.nombre,
+        start: evaluation.fecha,
+        end: evaluation.fecha,
+    }));
+
+    // Agrega eventos estáticos
+    const staticEvents = [
+        {
+            title: 'HC Parcial Ing Software',
+            start: '2023-10-03',
+            end: '2023-10-03',
+        },
+        {
+            title: 'HC Defensa TIC 3',
+            start: '2023-10-15',
+            end: '2023-10-17',
+        },
+        {
+            title: 'HC Parcial Teoria de la computacion',
+            start: '2023-11-18',
+            end: '2023-11-18',
+        },
+    ];
+
     return (
         <div className="calendar">
             <Header />
@@ -18,25 +50,9 @@ const Calendar = () => {
             <div id="calendar-container">
                 <FullCalendar
                     plugins={[dayGridPlugin]}
-                    initialView="dayGridMonth" 
-                    events={[
-                        {
-                            title: 'Parcial Ing Software',
-                            start: '2023-10-03',
-                            end: '2023-10-03',
-                        },
-                        {
-                            title: 'Defensa TIC 3',
-                            start: '2023-10-15',
-                            end: '2023-10-17',
-                        },
-                        {
-                            title: 'Parcial Teoria de la computacion',
-                            start: '2023-11-18',
-                            end: '2023-11-18',
-                        }
-                    ]}
-                    locale={esLocale} // Configura la localización en español
+                    initialView="dayGridMonth"
+                    events={[...events, ...staticEvents]}
+                    locale={esLocale}
                 />
             </div>
         </div>
@@ -44,5 +60,3 @@ const Calendar = () => {
 };
 
 export default Calendar;
-
-

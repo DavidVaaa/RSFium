@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/header';
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
 import './Chats.css';
 import Evaluacion from '../components/Evaluacion';
+<<<<<<< Updated upstream
 import axios from './axiosConfig';
 
 const Chats = () => {
@@ -23,6 +25,35 @@ const Chats = () => {
       });
   }, [id]);
 
+=======
+import { useAuth } from '../AuthContext';
+
+const Chats = () => {
+  const { courseName } = useParams();
+  const { user } = useAuth();
+  const [userEvents, setUserEvents] = useState([]);
+  const [messages, setMessages] = useState([
+    { text: 'Hola, bienvenidos al chat de ' + courseName, isUser: false },
+    { text: '¡Hola! ¿En qué puedo ayudarte?', isUser: true },
+  ]);
+  const [userMessage, setUserMessage] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      axios.get(`/api/evaluaciones/fechas/${user.userId}`).then((response) => {
+        setUserEvents(response.data);
+      });
+    }
+  }, [user]);
+
+  const events = userEvents.map((evaluation) => ({
+    title: evaluation.nombre,
+    start: evaluation.fecha,
+    end: evaluation.fecha,
+  }));
+
+  // Función para enviar un nuevo mensaje
+>>>>>>> Stashed changes
   const sendMessage = (text, isUser) => {
     // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
     axios.post(`/api/materia/${id}/chat/${id}/crear-comentario/`, { text, isUser })
@@ -39,13 +70,7 @@ const Chats = () => {
     <div className="chats">
       <div className="evaluations-panel">
         <h2 id="title">Evaluaciones</h2>
-        <Evaluacion
-          evaluations={[
-            { name: 'Parcial 1', date: '2021-10-03' },
-            { name: 'Parcial 2', date: '2021-10-15' },
-            { name: 'Parcial 3', date: '2021-11-18' },
-          ]}
-        />
+        <Evaluacion evaluations={events} />
       </div>
 
       <div className="chat-container">
@@ -72,8 +97,8 @@ const Chats = () => {
           />
           <button
             onClick={() => {
-              sendMessage(userMessage, true); // Usar el mensaje del estado
-              setUserMessage(''); // Limpiar el input después de enviar el mensaje
+              sendMessage(userMessage, true);
+              setUserMessage('');
             }}
           >
             Enviar
