@@ -17,7 +17,7 @@ const Debates = () => {
   useEffect(() => {
     // Realiza una solicitud GET al servidor para obtener la lista de debates al cargar la página.
     axios
-      .get(`api/debates/alumno/${user.userId}`)
+      .get(`api/debates/listar/${user.userId}`)
       .then((response) => {
         setDebates(response.data);
         setLoading(false);

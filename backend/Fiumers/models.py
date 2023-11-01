@@ -19,12 +19,6 @@ class CustomUser(AbstractUser):
     materias = models.ManyToManyField('Materia', related_name='users', blank=True)
 
 
-    def tiene_rol_adecuado(self):
-        # Lista de roles permitidos ("Student" y "Teacher")
-        roles_permitidos = ["Student", "Teacher"]
-        return self.rol in roles_permitidos
-
-
 class Materia(models.Model):
     codigo = models.AutoField(primary_key=True)  # Utiliza AutoField para claves primarias automáticas
     nombre = models.CharField(max_length=255)

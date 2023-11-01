@@ -46,7 +46,7 @@ class EvaluacionCalendarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evaluacion
-        fields = ['nombre', 'fecha']
+        fields = ['id', 'nombre', 'fecha']
 
 
 class DebateSerializer(serializers.ModelSerializer):

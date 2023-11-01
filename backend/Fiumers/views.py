@@ -58,7 +58,6 @@ class UserLogin(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class UserLogout(APIView):
 
     def post(self, request):
@@ -101,12 +100,23 @@ class MateriaViewSet(viewsets.ModelViewSet):
     queryset = Materia.objects.all()
     serializer_class = MateriaSerializer
 
-    def create(self, request):
+    @action(detail=False, methods=['post'])
+    def crear_materia(self, request, user_id):
+        # Obtener el usuario por ID
+        try:
+            usuario = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'El usuario especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = MateriaSerializer(data=request.data)
         if serializer.is_valid():
-            # Verifica si el usuario actual tiene permiso para crear materias (puedes ajustar esta lógica)
-            if request.user.rol == 'Staff':
-                serializer.save()
+            # Verifica si el usuario actual tiene permiso para crear materias
+            if usuario.rol == 'Staff':
+                materia = serializer.save()
+
+                # Crear un chat asociado a la materia
+                Chat.objects.create(materia=materia, nombre=f"Chat de {materia.nombre}")
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response({'message': 'No autorizado para crear materias'}, status=status.HTTP_403_FORBIDDEN)
@@ -179,22 +189,16 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def crear_evaluacion(self, request, materia_id):
-        # Obtener la materia correspondiente
         try:
             materia = Materia.objects.get(codigo=materia_id)
         except Materia.DoesNotExist:
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Verificar si el usuario actual es el profesor de la materia
-        if request.user == materia.profesor:
-            serializer = self.get_serializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save(codigo_materia=materia)
-                return Response({'message': 'Evaluación creada exitosamente'}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'No estás autorizado para realizar esta acción'},
-                            status=status.HTTP_403_FORBIDDEN)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(codigo_materia=materia)
+            return Response({'message': 'Evaluación creada exitosamente'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def obtener_evaluaciones_de_materia(self, request, materia_id):
@@ -211,33 +215,47 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
-    def obtener_fechas_evaluaciones_alumno(self, request):
-        if request.user.rol == 'Student':
-            materias_del_usuario = Materia.objects.filter(users=request.user, rol='Student')
-        elif request.user.rol == 'Teacher':
-            materias_del_usuario = Materia.objects.filter(profesor=request.user)
-        else:
-            # Para otros roles, no se mostrarán las evaluaciones
-            materias_del_usuario = Materia.objects.all()
+    def obtener_fechas_evaluaciones_alumno(self, request, user_id):
+        # Realiza la lógica para obtener las evaluaciones del usuario según su ID
+        try:
+            usuario = CustomUser.objects.get(id=user_id)  # Obtén el usuario por su ID
 
-            # Filtra las evaluaciones de esas materias
-        evaluaciones = Evaluacion.objects.filter(codigo_materia__in=materias_del_usuario)
+            if usuario.rol == 'Staff':
+                # Si el usuario tiene el rol "Staff", muestra todas las evaluaciones
+                evaluaciones = Evaluacion.objects.all()
+            else:
+                if usuario.rol == 'Student':
+                    materias_del_usuario = Materia.objects.filter(users=usuario)
+                elif usuario.rol == 'Teacher':
+                    materias_del_usuario = Materia.objects.filter(profesor=usuario)
+                else:
+                    # Para otros roles, no se mostrarán las evaluaciones
+                    materias_del_usuario = Materia.objects.all()
 
-        # Utiliza el nuevo serializador para incluir solo las fechas
-        serializer = EvaluacionCalendarioSerializer(evaluaciones, many=True)
+                # Filtra las evaluaciones de esas materias
+                evaluaciones = Evaluacion.objects.filter(codigo_materia__in=materias_del_usuario)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            # Utiliza el nuevo serializador para incluir solo las fechas
+            serializer = EvaluacionCalendarioSerializer(evaluaciones, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class DebateViewSet(viewsets.ModelViewSet):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
 
-    def list(self, request):
-        user = request.user
+    @action(detail=False, methods=['get'])
+    def listar_debates(self, request, user_id):
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'El usuario especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
 
         if user.rol == 'Staff':
-            # Si el usuario tiene rol de 'Staff', devuelve todos los debates
+            # Si el usuario tiene el rol de 'Staff', devuelve todos los debates
             queryset = Debate.objects.all()
         elif user.rol == 'Student':
             # Si el usuario es 'Student', filtra debates de evaluaciones de materias asociadas al alumno
@@ -297,21 +315,29 @@ class ComentarioDebateViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
-    def crear_comentario_de_debate(self, request, debate_id):
-        # Obtén el debate
-        debate = Debate.objects.get(id=debate_id)
+    def crear_comentario_de_debate(self, request, debate_id, user_id):
+        try:
+            # Obtén el debate
+            debate = Debate.objects.get(id=debate_id)
 
-        # Verifica si el debate está cerrado
-        if debate.cerrado:
-            return Response({'message': 'No puedes comentar en un debate cerrado'}, status=status.HTTP_400_BAD_REQUEST)
+            # Verifica si el debate está cerrado
+            if debate.cerrado:
+                return Response({'message': 'No puedes comentar en un debate cerrado'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        # Crea el comentario
-        serializer = ComentarioDebateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(debate=debate, usuario=request.user)
-            return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Obtén el usuario correspondiente al user_id
+            usuario = CustomUser.objects.get(id=user_id)
 
+            # Crea el comentario
+            serializer = ComentarioDebateSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(debate=debate, usuario=usuario)
+                return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Debate.DoesNotExist:
+            return Response({'message': 'El debate especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'El usuario especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ComentarioViewSet(viewsets.ModelViewSet):
@@ -319,32 +345,34 @@ class ComentarioViewSet(viewsets.ModelViewSet):
     serializer_class = ComentarioSerializer
 
     @action(detail=False, methods=['post'])
-    def crear_comentario(self, request, materia_id, chat_id):
-        usuario_actual = request.user
+    def crear_comentario(self, request, materia_id, user_id):
+        # Ajusta la lógica para obtener el usuario por ID
+        try:
+            usuario_actual = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
         try:
             materia = Materia.objects.get(id=materia_id)
-            chat = Chat.objects.get(id=chat_id)
         except Materia.DoesNotExist:
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
-        except Chat.DoesNotExist:
-            return Response({'message': 'El chat especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
 
-        if usuario_actual.tiene_rol_adecuado() and chat.materia == materia:
-            serializer = self.get_serializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save(chat=chat, usuario=usuario_actual)
-                return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'No estás autorizado para realizar esta acción'},
-                            status=status.HTTP_403_FORBIDDEN)
+        chat = Chat.objects.get(materia=materia)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(chat=chat, usuario=usuario_actual)
+            return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
-    def comentarios_del_chat(self, request, chat_id):
+    def comentarios_de_materia(self, request, materia_id):
         try:
-            chat = Chat.objects.get(id=chat_id)
-        except Chat.DoesNotExist:
-            return Response({'message': 'El chat especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
-        comentarios = Comentario.objects.filter(chat=chat)
+            materia = Materia.objects.get(id=materia_id)
+        except Materia.DoesNotExist:
+            return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Filtra los comentarios relacionados con la materia
+        comentarios = Comentario.objects.filter(chat__materia=materia)
         serializer = ComentarioSerializer(comentarios, many=True)
         return Response(serializer.data)

@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import './Chats.css';
 import Evaluacion from '../components/Evaluacion';
-<<<<<<< Updated upstream
 import axios from './axiosConfig';
 
 const Chats = () => {
@@ -16,7 +15,7 @@ const Chats = () => {
 
   useEffect(() => {
     // Obtener los mensajes del chat desde el backend cuando se monta el componente
-    axios.get(`/api/chat/${id}/comentarios/`)
+    axios.get(`/api/materia/${id}/comentarios/`)
       .then((response) => {
         setMessages(response.data);
       })
@@ -25,7 +24,6 @@ const Chats = () => {
       });
   }, [id]);
 
-=======
 import { useAuth } from '../AuthContext';
 
 const Chats = () => {
@@ -37,10 +35,10 @@ const Chats = () => {
     { text: '¡Hola! ¿En qué puedo ayudarte?', isUser: true },
   ]);
   const [userMessage, setUserMessage] = useState('');
-
+  //api/materia/<int:materia_id>/evaluaciones/ devuelve las evaluaciones de la materia
   useEffect(() => {
     if (user) {
-      axios.get(`/api/evaluaciones/fechas/${user.userId}`).then((response) => {
+      axios.get(`api/materia/<int:materia_id>/evaluaciones/`).then((response) => {
         setUserEvents(response.data);
       });
     }
@@ -53,10 +51,9 @@ const Chats = () => {
   }));
 
   // Función para enviar un nuevo mensaje
->>>>>>> Stashed changes
   const sendMessage = (text, isUser) => {
     // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
-    axios.post(`/api/materia/${id}/chat/${id}/crear-comentario/`, { text, isUser })
+    axios.post(`api/materia/<int:materia_id>/<int:user_id>/comentario/crear/`, { text, isUser })
       .then((response) => {
         const newMessage = response.data;
         setMessages([...messages, newMessage]);
@@ -110,3 +107,4 @@ const Chats = () => {
 };
 
 export default Chats;
+
