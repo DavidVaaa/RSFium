@@ -16,6 +16,7 @@ const Home = () => {
       // Verifica que tengas un usuario logeado antes de hacer la solicitud
       axios.get(`/api/materias/obtener/${user.userId}`).then((response) => {
         setUserCourses(response.data);
+        console.log(response.data);
       });
     }
   }, [user]); // Asegúrate de incluir 'user' como dependencia para manejar cambios en el usuario
@@ -29,6 +30,7 @@ const Home = () => {
         {userCourses.map((course, index) => (
           <CourseCard
             key={index}
+            id={course.codigo}
             courseName={course.nombre}
             professor={course.nombre_profesor}
             imageUrl={tic3}

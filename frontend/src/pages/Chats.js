@@ -1,27 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/header';
 import { useParams } from 'react-router-dom';
 import './Chats.css';
 import Evaluacion from '../components/Evaluacion';
+import axios from './axiosConfig';
 
 const Chats = () => {
   const { courseName } = useParams();
   const { id } = useParams();
-
-  // Estado para almacenar los mensajes
-  const [messages, setMessages] = useState([
-    { text: 'Hola, bienvenidos al chat de ' + id, isUser: false },
-    { text: '¡Hola! ¿En qué puedo ayudarte?', isUser: true },
-  ]);
-
-  // Estado para almacenar el mensaje que el usuario está escribiendo
+  
+  const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
 
-  // Función para enviar un nuevo mensaje
+  useEffect(() => {
+    // Obtener los mensajes del chat desde el backend cuando se monta el componente
+    axios.get(`/api/chat/${id}/comentarios/`)
+      .then((response) => {
+        setMessages(response.data);
+      })
+      .catch((error) => {
+        console.error('Error al obtener mensajes del chat:', error);
+      });
+  }, [id]);
+
   const sendMessage = (text, isUser) => {
-    const newMessage = { text, isUser };
-    setMessages([...messages, newMessage]);
-  };
+    // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
+    axios.post(`/api/materia/${id}/chat/${id}/crear-comentario/`, { text, isUser })
+      .then((response) => {
+        const newMessage = response.data;
+        setMessages([...messages, newMessage]);
+      })
+      .catch((error) => {
+        console.error('Error al crear un comentario:', error);
+      });
+  }
 
   return (
     <div className="chats">
