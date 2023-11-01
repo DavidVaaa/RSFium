@@ -4,17 +4,20 @@ import Debate from '../components/Debate';
 import axios from './axiosConfig'; // Importa Axios
 import './Debates.css';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext'; // Asegúrate de importar tu contexto de autenticación
+
 
 const Debates = () => {
   const navigate = useNavigate();
 
   const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
+  
   useEffect(() => {
     // Realiza una solicitud GET al servidor para obtener la lista de debates al cargar la página.
     axios
-      .get('/api/debates/')
+      .get(`/api/debates/${user.userId}`)
       .then((response) => {
         setDebates(response.data);
         setLoading(false);
@@ -23,7 +26,7 @@ const Debates = () => {
         console.error('Error al obtener la lista de debates', error);
         setLoading(false);
       });
-  }, []);
+  }, [user]);
 
   const abrirDebate = () => {
     // Redirige al usuario a la página de detalles de debates para abrir un nuevo debate.

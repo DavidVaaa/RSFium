@@ -30,14 +30,16 @@ function Login() {
     };
     loginUser(userData);
     try {
-      // Realiza la solicitud de inicio de sesión al backend
       const response = await axios.post('/api/login/', userData);
-      // Manejar la respuesta
+      // Establece el usuario logeado y su ID
+      loginUser({
+        user: response.data,
+        userId: response.data.id, // Suponiendo que el ID del usuario se encuentra en response.data.id
+      });
       console.log('Inicio de sesión exitoso:', response.data);
       // Redirige a la página de inicio
       navigate('/home');
     } catch (error) {
-      // En caso de error, puedes mostrar un mensaje de error o realizar cualquier otra acción necesaria.
       console.error('Error al iniciar sesión:', error);
     }
   };
