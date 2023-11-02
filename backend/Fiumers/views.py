@@ -14,15 +14,6 @@ from .serializers import CustomUserSerializer, MateriaSerializer, EvaluacionSeri
     ComentarioSerializer, UserLoginSerializer, UserRegisterSerializer, EvaluacionCalendarioSerializer, \
     ComentarioDebateSerializer
 
-
-def home(request):
-    # Obtén los datos que deseas mostrar en la página de inicio, por ejemplo, una lista de materias
-    materias = Materia.objects.all()
-
-    # Pasa los datos a la plantilla
-    return render(request, 'home.html', {'materias': materias})
-
-
 class UserRegister(CreateAPIView):
     serializer_class = UserRegisterSerializer
 
@@ -84,16 +75,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
                 serializer.save()
                 return Response({'message': 'Datos de usuario actualizados con éxito'})
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=['get'])
-    def list_materias(self, request, pk=None):
-        try:
-            usuario = CustomUser.objects.get(id=pk)
-            materias = usuario.materias.all()
-            serializer = MateriaSerializer(materias, many=True)
-            return Response(serializer.data)
-        except CustomUser.DoesNotExist:
-            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class MateriaViewSet(viewsets.ModelViewSet):
@@ -353,7 +334,7 @@ class ComentarioViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            materia = Materia.objects.get(id=materia_id)
+            materia = Materia.objects.get(codigo=materia_id)
         except Materia.DoesNotExist:
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -368,7 +349,7 @@ class ComentarioViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def comentarios_de_materia(self, request, materia_id):
         try:
-            materia = Materia.objects.get(id=materia_id)
+            materia = Materia.objects.get(codigo=materia_id)
         except Materia.DoesNotExist:
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
 

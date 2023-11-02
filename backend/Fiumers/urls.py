@@ -35,7 +35,7 @@ urlpatterns = [
     path('api/evaluacion/<int:evaluacion_id>/debates/',
          views.DebateViewSet.as_view({'get': 'obtener_debates_evaluacion'}), name='obtener_debates_evaluacion'),
     path('api/materia/<int:materia_id>/<int:user_id>/comentario/crear/', views.ComentarioViewSet.as_view({'post': 'crear_comentario'}), name='crear_comentario'),
-    path('api/materia/<int:materia_id>/comentarios/', views.MateriaViewSet.as_view({'get': 'comentarios_de_materia'}), name='comentarios_de_materia'),
+    path('api/materia/<int:materia_id>/comentarios/', views.ComentarioViewSet.as_view({'get': 'comentarios_de_materia'}), name='comentarios_de_materia'),
     path('api/debates/<int:debate_id>/comentarios/',
          views.ComentarioDebateViewSet.as_view({'get': 'get_comentarios_de_debate'}), name='comentarios_debate'),
     path('api/debate/<int:debate_id>/crear/<int:user_id>/',
