@@ -126,23 +126,6 @@ class MateriaViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def list(self, request):
-        if request.user.rol in ['Student', 'Teacher', 'Staff']:
-            if request.user.rol == 'Student':
-                print("Entro a lista de materias de alumno")
-                # Filtra las materias asociadas al alumno actual
-                queryset = self.queryset.filter(users=request.user)
-            elif request.user.rol == 'Teacher':
-                # Filtra las materias que el profesor está enseñando
-                queryset = self.queryset.filter(profesor=request.user)
-            else:  # Si el rol es "Staff", se muestran todas las materias
-                queryset = self.queryset.all()
-
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        else:
-            return Response({'message': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
-
     @action(detail=False, methods=['post'])
     def unirse_a_materia(self, request, materia_id):
         # Obtén el usuario al que quieres unir a la materia
@@ -266,12 +249,18 @@ class DebateViewSet(viewsets.ModelViewSet):
     # Se debe modificar el cerrar_debate segun como se quiera implementar en el front
     # La idea es que luego se modifique la fecha de la evaluacion asociada o no, y que en ambos casos se borre el debate
     @action(detail=True, methods=['patch'])
-    def cerrar_debate(self, request, pk):
-        debate = self.get_object()
-        if request.user.rol == 'Teacher':
-            debate.cerrado = True
-            debate.save()
+    def cerrar_debate(self, request, user_id):
+        try:
+            usuario = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'El usuario especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
+
+        if usuario.rol == 'Teacher':
+            # Lógica para cerrar el debate
             return Response({'message': 'Debate cerrado exitosamente'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'No estás autorizado para realizar esta acción'},
+                            status=status.HTTP_403_FORBIDDEN)
 
     @action(detail=False, methods=['get'])
     def obtener_debates_evaluacion(self, request, evaluacion_id):
