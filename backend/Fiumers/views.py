@@ -351,6 +351,6 @@ class ComentarioViewSet(viewsets.ModelViewSet):
             return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
 
         # Filtra los comentarios relacionados con la materia
-        comentarios = Comentario.objects.filter(chat__materia=materia)
+        comentarios = Comentario.objects.filter(chat__materia=materia).order_by('id')
         serializer = ComentarioSerializer(comentarios, many=True)
         return Response(serializer.data)

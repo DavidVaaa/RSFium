@@ -11,7 +11,7 @@ const Chats = () => {
   const { id_materia } = useParams();
   const [userEvents, setUserEvents] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [userMessage, setUserMessage] = useState('');
+  const [contenido, setUserMessage] = useState('');
   const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
   const url = window.location.href;
   const chatId = url.substring(url.lastIndexOf('/') + 1);
@@ -34,13 +34,13 @@ const Chats = () => {
       .catch((error) => {
         console.error('Error al obtener evaluaciones de la materia', error);
       });
-  }, [id_materia]);
+  }, [id_materia, chatId]);
 
 
   // Función para enviar un nuevo mensaje
-  const sendMessage = (text, isUser) => {
+  const sendMessage = (contenido) => {
     // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
-    axios.post(`/api/materia/${chatId}/${user.userId}/comentario/crear/`, { text, isUser })
+    axios.post(`/api/materia/${chatId}/${user.userId}/comentario/crear/`, { contenido })
     .then((response) => {
         const newMessage = response.data;
         setMessages([...messages, newMessage]);
@@ -76,12 +76,12 @@ const Chats = () => {
           <input
             type="text"
             placeholder="Escribe un mensaje..."
-            value={userMessage}
+            value={contenido}
             onChange={(e) => setUserMessage(e.target.value)}
           />
           <button
             onClick={() => {
-              sendMessage(userMessage, true);
+              sendMessage(contenido, true);
               setUserMessage('');
             }}
           >
