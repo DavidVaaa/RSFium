@@ -54,7 +54,6 @@ class DebateSerializer(serializers.ModelSerializer):
         model = Debate
         fields = '__all__'
 
-
 class ComentarioDebateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComentarioDebate

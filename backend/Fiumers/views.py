@@ -15,6 +15,7 @@ from .serializers import CustomUserSerializer, MateriaSerializer, EvaluacionSeri
     ComentarioSerializer, UserLoginSerializer, UserRegisterSerializer, EvaluacionCalendarioSerializer, \
     ComentarioDebateSerializer
 
+
 class UserRegister(CreateAPIView):
     serializer_class = UserRegisterSerializer
 
@@ -241,9 +242,18 @@ class DebateViewSet(viewsets.ModelViewSet):
             evaluacion = Evaluacion.objects.get(id=evaluacion_id)
         except Evaluacion.DoesNotExist:
             return Response({'message': 'La evaluación especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = self.get_serializer(data=request.data)
+
+        data = {
+            'nombre': request.data.get('nombre'),
+            'fecha_nueva': request.data.get('fecha_nueva'),
+            'fecha_original': request.data.get('fecha_original'),
+            "cerrado": False,
+            'evaluacion': evaluacion.id,
+        }
+
+        serializer = DebateSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(evaluacion=evaluacion)
+            serializer.save()
             return Response({'message': 'Debate creado exitosamente'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
