@@ -23,7 +23,7 @@ const Chats = () => {
       .catch((error) => {
         console.error('Error al obtener mensajes del chat:', error);
       });
-  
+
     // Obtener evaluaciones de la materia
     axios.get(`/api/materia/${id_materia}/evaluaciones/`)
       .then((response) => {
@@ -33,16 +33,13 @@ const Chats = () => {
         console.error('Error al obtener evaluaciones de la materia', error);
       });
   }, [id_materia]);
-  
 
+
+  // Función para enviar un nuevo mensaje
   const sendMessage = (text, isUser) => {
-    // Reemplaza materia_id y user_id con los valores adecuados
-    const materia_id = id_materia;
-    const user_id = user.userId;
-  
     // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
-    axios.post(`/api/materia/${materia_id}/${user_id}/comentario/crear/`, { text, isUser })
-      .then((response) => {
+    axios.post(`/api/materia/${id_materia}/${user.userId}/comentario/crear/`, { text, isUser })
+    .then((response) => {
         const newMessage = response.data;
         setMessages([...messages, newMessage]);
       })
@@ -50,7 +47,6 @@ const Chats = () => {
         console.error('Error al crear un comentario:', error);
       });
   }
-  
 
   return (
     <div className="chats">
@@ -99,4 +95,3 @@ const Chats = () => {
 }
 
 export default Chats;
-
