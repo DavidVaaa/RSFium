@@ -23,6 +23,7 @@ function Register() {
   const handleConfirmPasswordChange = (event) => {
     setConfirmPassword(event.target.value);
   };
+  const email = `${username}@correo.um.edu.uy`;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -35,6 +36,7 @@ function Register() {
     try {
         await axios.post('/api/register/', {
         username,
+        email,
         password,
       });
       
@@ -56,7 +58,7 @@ function Register() {
           <FontAwesomeIcon icon={faUser} className="input-icon" />
           <input
             type="text"
-            placeholder="Email"
+            placeholder="Usuario"
             value={username}
             onChange={handleUsernameChange}
             required

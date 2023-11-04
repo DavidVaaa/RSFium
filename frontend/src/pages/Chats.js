@@ -1,60 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/header';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import { useAuth } from '../AuthContext';
 import './Chats.css';
 import Evaluacion from '../components/Evaluacion';
 import axios from './axiosConfig';
 
 const Chats = () => {
   const { courseName } = useParams();
-  const { id } = useParams();
-  
+  const { id_materia } = useParams();
+  const [userEvents, setUserEvents] = useState([]);
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
+  const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
 
   useEffect(() => {
     // Obtener los mensajes del chat desde el backend cuando se monta el componente
-    axios.get(`/api/materia/${id}/comentarios/`)
+    axios.get(`/api/materia/${id_materia}/comentarios/`)
       .then((response) => {
         setMessages(response.data);
       })
       .catch((error) => {
         console.error('Error al obtener mensajes del chat:', error);
       });
-  }, [id]);
-
-import { useAuth } from '../AuthContext';
-
-const Chats = () => {
-  const { courseName } = useParams();
-  const { user } = useAuth();
-  const [userEvents, setUserEvents] = useState([]);
-  const [messages, setMessages] = useState([
-    { text: 'Hola, bienvenidos al chat de ' + courseName, isUser: false },
-    { text: '¡Hola! ¿En qué puedo ayudarte?', isUser: true },
-  ]);
-  const [userMessage, setUserMessage] = useState('');
-  //api/materia/<int:materia_id>/evaluaciones/ devuelve las evaluaciones de la materia
-  useEffect(() => {
-    if (user) {
-      axios.get(`api/materia/<int:materia_id>/evaluaciones/`).then((response) => {
+  
+    // Obtener evaluaciones de la materia
+    axios.get(`/api/materia/${id_materia}/evaluaciones/`)
+      .then((response) => {
         setUserEvents(response.data);
+      })
+      .catch((error) => {
+        console.error('Error al obtener evaluaciones de la materia', error);
       });
-    }
-  }, [user]);
-
-  const events = userEvents.map((evaluation) => ({
-    title: evaluation.nombre,
-    start: evaluation.fecha,
-    end: evaluation.fecha,
-  }));
+  }, [id_materia]);
+  
 
   // Función para enviar un nuevo mensaje
   const sendMessage = (text, isUser) => {
     // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
-    axios.post(`api/materia/<int:materia_id>/<int:user_id>/comentario/crear/`, { text, isUser })
-      .then((response) => {
+    axios.post(`/api/materia/${id_materia}/${user.userId}/comentario/crear/`, { text, isUser })
+    .then((response) => {
         const newMessage = response.data;
         setMessages([...messages, newMessage]);
       })
@@ -67,7 +52,10 @@ const Chats = () => {
     <div className="chats">
       <div className="evaluations-panel">
         <h2 id="title">Evaluaciones</h2>
-        <Evaluacion evaluations={events} />
+        <Evaluacion evaluations={userEvents} />
+
+
+
       </div>
 
       <div className="chat-container">
@@ -104,7 +92,7 @@ const Chats = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Chats;
 

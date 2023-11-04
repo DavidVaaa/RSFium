@@ -6,6 +6,10 @@ import './Debates.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext'; // Asegúrate de importar tu contexto de autenticación
 
+const instance = axios.create({
+  xsrfHeaderName: 'X-CSRFTOKEN', // Nombre del encabezado CSRF en tu configuración de Django
+  xsrfCookieName: 'csrftoken',  // Nombre de la cookie CSRF en tu configuración de Django
+});
 
 const Debates = () => {
   const navigate = useNavigate();
@@ -16,8 +20,8 @@ const Debates = () => {
   
   useEffect(() => {
     // Realiza una solicitud GET al servidor para obtener la lista de debates al cargar la página.
-    axios
-      .get(`api/debates/listar/${user.userId}`)
+    instance
+      .get(`api/debate/listar/${user.userId}`)
       .then((response) => {
         setDebates(response.data);
         setLoading(false);
@@ -44,7 +48,7 @@ const Debates = () => {
       {loading ? (
         <p>Cargando debates...</p>
       ) : (
-        debates.map((debate) => (
+          debates.map((debate) => (
           <Debate key={debate.id} nombreDelDebate={debate.nombre} />
         ))
       )}
