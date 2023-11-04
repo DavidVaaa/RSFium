@@ -12,7 +12,7 @@ const Debates = () => {
   const [debates, setDebates] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
-  
+
   useEffect(() => {
     // Realiza una solicitud GET al servidor para obtener la lista de debates al cargar la página.
     axios

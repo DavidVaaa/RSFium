@@ -6,7 +6,7 @@ const Evaluacion = ({ evaluations }) => {
     <div className="evaluations-list">
       {evaluations.map((evaluation, index) => (
         <div key={index} className="evaluation">
-          <p className="evaluation-data">{evaluation.name} - {evaluation.date}</p>
+          <p className="evaluation-data">{evaluation.nombre} - {evaluation.fecha_evaluacion}</p>
         </div>
       ))}
     </div>

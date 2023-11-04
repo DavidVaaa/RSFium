@@ -1,54 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import Header from '../components/header';
-import Debate from '../components/Debate';
-import axios from './axiosConfig'; // Importa Axios
-import './Debates.css';
+import React, { useState } from 'react';
+import './Debate.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../AuthContext'; // Asegúrate de importar tu contexto de autenticación
 
-const Debates = () => {
-  const navigate = useNavigate();
+function Debate({ nombreDelDebate }) {
+    const navigate = useNavigate();
+    const [debateClosed, setDebateClosed] = useState(false);
 
-  const [debates, setDebates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
+    const handleCloseDebate = () => {
+        const confirmClose = window.confirm('¿Desea cerrar el debate?');
+        if (confirmClose) {
+            // Realizar la acción de cierre aquí
+            // Por ejemplo, redirigir a otra página o ejecutar una función
+            setDebateClosed(true); // Actualizar el estado para ocultar la cruz
+        }
+    };
 
-  useEffect(() => {
-    // Realiza una solicitud GET al servidor para obtener la lista de debates al cargar la página.
-    axios
-      .get(`api/debate/listar/${user.userId}`)
-      .then((response) => {
-        setDebates(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error al obtener la lista de debates', error);
-        setLoading(false);
-      });
-  }, [user]);
+    return (
+        <div className="debate">
+            <h3>{nombreDelDebate}</h3>
+            <div className="debate-buttons">
+                <button className="button" onClick={() => navigate('/detalles-debates')}>
+                    <FontAwesomeIcon icon={faEye} />
+                </button>
+                {!debateClosed && (
+                    <button className="button" onClick={handleCloseDebate}>
+                        <FontAwesomeIcon icon={faTimes} />
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
 
-  const abrirDebate = () => {
-    // Redirige al usuario a la página de detalles de debates para abrir un nuevo debate.
-    navigate('/detalles-debates');
-  };
+export default Debate;
 
-  return (
-    <div className="debates">
-      <Header />
-      <h2 id="title">Debates</h2>
-      <button className="abrir-debate" onClick={abrirDebate}>
-        Abrir debate
-      </button>
 
-      {loading ? (
-        <p>Cargando debates...</p>
-      ) : (
-          debates.map((debate) => (
-          <Debate key={debate.id} nombreDelDebate={debate.nombre} />
-        ))
-      )}
-    </div>
-  );
-};
-
-export default Debates;

@@ -13,10 +13,12 @@ const Chats = () => {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
   const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
+  const url = window.location.href;
+  const chatId = url.substring(url.lastIndexOf('/') + 1);
 
   useEffect(() => {
     // Obtener los mensajes del chat desde el backend cuando se monta el componente
-    axios.get(`/api/materia/${id_materia}/comentarios/`)
+    axios.get(`/api/materia/${chatId}/comentarios/`)
       .then((response) => {
         setMessages(response.data);
       })
@@ -25,7 +27,7 @@ const Chats = () => {
       });
 
     // Obtener evaluaciones de la materia
-    axios.get(`/api/materia/${id_materia}/evaluaciones/`)
+    axios.get(`/api/materia/${chatId}/evaluaciones/`)
       .then((response) => {
         setUserEvents(response.data);
       })
@@ -38,7 +40,7 @@ const Chats = () => {
   // Función para enviar un nuevo mensaje
   const sendMessage = (text, isUser) => {
     // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
-    axios.post(`/api/materia/${id_materia}/${user.userId}/comentario/crear/`, { text, isUser })
+    axios.post(`/api/materia/${chatId}/${user.userId}/comentario/crear/`, { text, isUser })
     .then((response) => {
         const newMessage = response.data;
         setMessages([...messages, newMessage]);
@@ -53,9 +55,6 @@ const Chats = () => {
       <div className="evaluations-panel">
         <h2 id="title">Evaluaciones</h2>
         <Evaluacion evaluations={userEvents} />
-
-
-
       </div>
 
       <div className="chat-container">
@@ -68,7 +67,7 @@ const Chats = () => {
               key={index}
               className={`message ${message.isUser ? 'user' : 'other'}`}
             >
-              {message.text}
+              {message.contenido}
             </div>
           ))}
         </div>

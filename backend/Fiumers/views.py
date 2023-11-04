@@ -314,28 +314,34 @@ class ComentarioDebateViewSet(viewsets.ModelViewSet):
 class ComentarioViewSet(viewsets.ModelViewSet):
     queryset = Comentario.objects.all()
     serializer_class = ComentarioSerializer
-
-    @csrf_exempt
     @action(detail=False, methods=['post'])
     def crear_comentario(self, request, materia_id, user_id):
         # Ajusta la lógica para obtener el usuario por ID
         try:
+            # Ajusta la lógica para obtener el usuario por ID (en este caso, obtenemos el usuario actual)
             usuario_actual = CustomUser.objects.get(id=user_id)
+
+            try:
+                materia = Materia.objects.get(codigo=materia_id)
+            except Materia.DoesNotExist:
+                return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Obtén el chat asociado a la materia
+            chat = Chat.objects.get(materia=materia)
+
+            # Ahora que tienes el chat y el usuario, puedes crear el comentario
+            serializer = self.get_serializer(data={
+                'chat': chat.id,
+                'usuario': usuario_actual.id,
+                'contenido': request.data['contenido']
+            })
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except CustomUser.DoesNotExist:
             return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            materia = Materia.objects.get(codigo=materia_id)
-        except Materia.DoesNotExist:
-            return Response({'message': 'La materia especificada no existe'}, status=status.HTTP_404_NOT_FOUND)
-
-        chat = Chat.objects.get(materia=materia)
-
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(chat=chat, usuario=usuario_actual)
-            return Response({'message': 'Comentario creado exitosamente'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def comentarios_de_materia(self, request, materia_id):
