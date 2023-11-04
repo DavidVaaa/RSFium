@@ -34,12 +34,11 @@ function Register() {
     }
     
     try {
-        await axios.post('/api/register/', {
+      await axios.post('/api/register/', {
         username,
         email,
         password,
-      });
-      
+      });      
       // Registro exitoso, redirige al usuario a la página de inicio de sesión
       navigate('/'); // Ajusta la ruta según la estructura de tus rutas
     } catch (error) {
