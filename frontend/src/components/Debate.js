@@ -2,18 +2,29 @@ import React, { useState } from 'react';
 import './Debate.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import axios from '../pages/axiosConfig';
+import { useAuth } from '../AuthContext';
 
-function Debate({ nombreDelDebate }) {
-    const navigate = useNavigate();
-    const [debateClosed, setDebateClosed] = useState(false);
+function Debate({ id, nombreDelDebate, cerrado, rol }) {
+    const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
+    
 
     const handleCloseDebate = () => {
         const confirmClose = window.confirm('¿Desea cerrar el debate?');
         if (confirmClose) {
-            // Realizar la acción de cierre aquí
-            // Por ejemplo, redirigir a otra página o ejecutar una función
-            setDebateClosed(true); // Actualizar el estado para ocultar la cruz
+            axios.patch(`/api/debate/cerrar/${user.userId}/`)
+            .then(response => {
+                // Manejar la respuesta de la API si es necesario
+                console.log('Debate cerrado con éxito');
+               // setDebateClosed(true);
+                // Puedes realizar otras acciones después de cerrar el debate si es necesario
+            })
+            .catch(error => {
+                // Manejar errores de la llamada a la API si es necesario
+                console.error('Error al cerrar el debate', error);
+            });
+            
         }
     };
 
@@ -21,10 +32,12 @@ function Debate({ nombreDelDebate }) {
         <div className="debate">
             <h3>{nombreDelDebate}</h3>
             <div className="debate-buttons">
-                <button className="button" onClick={() => navigate('/detalles-debates')}>
-                    <FontAwesomeIcon icon={faEye} />
-                </button>
-                {!debateClosed && (
+                <Link to={`/detalles-debates/${id}`}>
+                    <button className="button">
+                        <FontAwesomeIcon icon={faEye} />
+                    </button>
+                </Link>
+                {!cerrado && rol == "Teacher" && (
                     <button className="button" onClick={handleCloseDebate}>
                         <FontAwesomeIcon icon={faTimes} />
                     </button>

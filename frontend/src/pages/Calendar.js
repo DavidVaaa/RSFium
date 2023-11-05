@@ -24,24 +24,6 @@ const Calendar = () => {
         end: evaluation.fecha,
     }));
 
-    // Agrega eventos estáticos
-    const staticEvents = [
-        {
-            title: 'HC Parcial Ing Software',
-            start: '2023-10-03',
-            end: '2023-10-03',
-        },
-        {
-            title: 'HC Defensa TIC 3',
-            start: '2023-10-15',
-            end: '2023-10-17',
-        },
-        {
-            title: 'HC Parcial Teoria de la computacion',
-            start: '2023-11-18',
-            end: '2023-11-18',
-        },
-    ];
 
     return (
         <div className="calendar">
@@ -51,7 +33,7 @@ const Calendar = () => {
                 <FullCalendar
                     plugins={[dayGridPlugin]}
                     initialView="dayGridMonth"
-                    events={[...events, ...staticEvents]}
+                    events={[...events]}
                     locale={esLocale}
                 />
             </div>

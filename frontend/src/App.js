@@ -5,8 +5,9 @@ import ForgotPassword from './pages/ForgotPassword';
 import Home from './pages/home';
 import Calendar from './pages/Calendar';
 import Debates from './pages/Debates';
-import DetallesDebates from './pages/DetallesDebates';
+import DetallesDebate from './pages/DetallesDebate';
 import Chats from './pages/Chats';
+import AbrirDebates from './pages/AbrirDebates';
 
 function App() {
   return (
@@ -19,7 +20,8 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/debates" element={<Debates />} />
-          <Route path="/detalles-debates" element={<DetallesDebates />} />
+          <Route path="/detalles-debates/:debateId" element={<DetallesDebate />} />
+          <Route path="/abrir-debates" element={<AbrirDebates />} />
           <Route path="/chats/:id" element={<Chats />} />
         </Routes>
       </div>
