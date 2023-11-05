@@ -13,6 +13,16 @@ const Debates = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
 
+  const [rol, setRol] = useState('');
+    
+    axios.get(`/api/customusers/${user.userId}`)
+    .then(response => {
+        setRol(response.data.rol)
+    })
+    .catch(error => {
+        console.error('Error al obtener el usuario', error);
+    });
+
   useEffect(() => {
     // Realiza una solicitud GET al servidor para obtener la lista de debates al cargar la página.
     axios
@@ -29,7 +39,7 @@ const Debates = () => {
 
   const abrirDebate = () => {
     // Redirige al usuario a la página de detalles de debates para abrir un nuevo debate.
-    navigate('/detalles-debates');
+    navigate('/abrir-debates');
   };
 
   return (
@@ -44,7 +54,7 @@ const Debates = () => {
         <p>Cargando debates...</p>
       ) : (
           debates.map((debate) => (
-          <Debate key={debate.id} nombreDelDebate={debate.nombre} />
+          <Debate key={debate.id} id ={debate.id} nombreDelDebate={debate.nombre} cerrado={debate.cerrado} rol={rol} />
         ))
       )}
     </div>

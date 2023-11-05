@@ -37,30 +37,6 @@ const Home = () => {
           />
         ))}
 
-      <CourseCard
-        id = "1"
-        courseName="TIC 3"
-        professor="Pablo Urquizo"
-        imageUrl={tic3}
-      />
-      <CourseCard
-        id = "2"
-        courseName="Análisis Matemático 1"
-        professor="Pepe Diaz"
-        imageUrl={tic3}
-      />
-      <CourseCard
-        id = "2"
-        courseName="Análisis Matemático 1"
-        professor="Pepe Diaz"
-        imageUrl={tic3}
-      />
-      <CourseCard
-        id = "2"
-        courseName="Análisis Matemático 1"
-        professor="Pepe Diaz"
-        imageUrl={tic3}
-      />
       </div>
     </div>
   );

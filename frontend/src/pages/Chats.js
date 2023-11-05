@@ -65,7 +65,8 @@ const Chats = () => {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`message ${message.isUser ? 'user' : 'other'}`}
+              // className={`message ${message.isUser ? 'user' : 'other'}`}
+              className={`message ${message.usuario === user.userId ? 'user' : 'other'}`}
             >
               {message.contenido}
             </div>
