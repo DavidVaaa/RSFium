@@ -13,7 +13,8 @@ function Debate({ id, nombreDelDebate, cerrado, rol }) {
     const handleCloseDebate = () => {
         const confirmClose = window.confirm('¿Desea cerrar el debate?');
         if (confirmClose) {
-            axios.patch(`/api/debate/cerrar/${user.userId}/`)
+            //api/debate/cerrar/<int:debate_id>/<int:user_id>/
+            axios.patch(`/api/debate/cerrar/${id}/${user.userId}/`)
             .then(response => {
                 // Manejar la respuesta de la API si es necesario
                 console.log('Debate cerrado con éxito');

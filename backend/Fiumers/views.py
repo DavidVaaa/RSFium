@@ -122,7 +122,7 @@ class MateriaViewSet(viewsets.ModelViewSet):
         elif usuario.rol == 'Teacher':
             # Filtra las materias que el profesor está enseñando
             queryset = Materia.objects.filter(profesor=usuario)
-        else:  # Si el rol es "Staff", se muestran todas las materias
+        elif usuario.rol == 'Staff':
             queryset = self.queryset.all()
 
         serializer = self.get_serializer(queryset, many=True)
@@ -260,14 +260,20 @@ class DebateViewSet(viewsets.ModelViewSet):
     # Se debe modificar el cerrar_debate segun como se quiera implementar en el front
     # La idea es que luego se modifique la fecha de la evaluacion asociada o no, y que en ambos casos se borre el debate
     @action(detail=True, methods=['patch'])
-    def cerrar_debate(self, request, user_id):
+    def cerrar_debate(self, request, debate_id, user_id):
+        try:
+            debate = Debate.objects.get(id=debate_id)
+        except Debate.DoesNotExist:
+            return Response({'message': 'El debate especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
+
         try:
             usuario = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
             return Response({'message': 'El usuario especificado no existe'}, status=status.HTTP_404_NOT_FOUND)
 
         if usuario.rol == 'Teacher':
-            # Lógica para cerrar el debate
+            debate.cerrado = True  # Establece el atributo cerrado en True
+            debate.save()  # Guarda el debate actualizado
             return Response({'message': 'Debate cerrado exitosamente'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'No estás autorizado para realizar esta acción'},

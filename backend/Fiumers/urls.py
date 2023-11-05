@@ -31,7 +31,7 @@ urlpatterns = [
     path('api/evaluacion/<int:evaluacion_id>/debates/crear/', views.DebateViewSet.as_view({'post': 'crear_debate'}),
          name='crear_debate'),
     path('api/debate/listar/<int:user_id>', views.DebateViewSet.as_view({'get': 'listar_debates'}), name='listar_debates'),
-    path('api/debate/cerrar/<int:user_id>/', views.DebateViewSet.as_view({'patch': 'cerrar_debate'}),
+    path('api/debate/cerrar/<int:debate_id>/<int:user_id>/', views.DebateViewSet.as_view({'patch': 'cerrar_debate'}),
          name='cerrar_debate'),
     path('api/evaluacion/<int:evaluacion_id>/debates/',
          views.DebateViewSet.as_view({'get': 'obtener_debates_evaluacion'}), name='obtener_debates_evaluacion'),
