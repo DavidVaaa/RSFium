@@ -35,6 +35,7 @@ function Login() {
       loginUser({
         user: response.data,
         userId: response.data.id, // Suponiendo que el ID del usuario se encuentra en response.data.id
+        username: response.data.username,
       });
       console.log('Inicio de sesión exitoso:', response.data);
       // Redirige a la página de inicio

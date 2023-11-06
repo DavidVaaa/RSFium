@@ -8,7 +8,7 @@ import { useAuth } from '../AuthContext';
 
 function Debate({ id, nombreDelDebate, cerrado, rol }) {
     const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
-    
+    const [debateClosed, setDebateClosed] = useState(cerrado);
 
     const handleCloseDebate = () => {
         const confirmClose = window.confirm('¿Desea cerrar el debate?');
@@ -18,7 +18,7 @@ function Debate({ id, nombreDelDebate, cerrado, rol }) {
             .then(response => {
                 // Manejar la respuesta de la API si es necesario
                 console.log('Debate cerrado con éxito');
-               // setDebateClosed(true);
+               setDebateClosed(true);
                 // Puedes realizar otras acciones después de cerrar el debate si es necesario
             })
             .catch(error => {
@@ -38,7 +38,7 @@ function Debate({ id, nombreDelDebate, cerrado, rol }) {
                         <FontAwesomeIcon icon={faEye} />
                     </button>
                 </Link>
-                {!cerrado && rol == "Teacher" && (
+                {!debateClosed && rol == "Teacher" && (
                     <button className="button" onClick={handleCloseDebate}>
                         <FontAwesomeIcon icon={faTimes} />
                     </button>

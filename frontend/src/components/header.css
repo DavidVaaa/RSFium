@@ -1,17 +1,17 @@
 .header {
-    background-color: #005496;
-    color: white;
-    font-family: "Roboto serif";
-    padding: 10px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-  }
+  background-color: #005496;
+  color: white;
+  font-family: "Roboto serif";
+  padding: 10px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
   
   /* .logo-img {
     max-width: 100%;
@@ -44,6 +44,28 @@
     color: #ae832d;
   }
   
+  .user-info {
+    position: relative; /* Establece la posición relativa para que los elementos absolutos estén posicionados en relación con este contenedor */
+  }
   
+  .user-name {
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .user-menu {
+    position: absolute;
+    top: 100%; /* Muestra el menú debajo del nombre de usuario */
+    left: 0;
+    background-color: #005496;
+    color: white;
+    padding: 10px;
+    display: flex;
+    flex-direction: column; /* Coloca las opciones una debajo de la otra */
+    align-items: flex-start; /* Alinea las opciones a la izquierda */
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 1; /* Asegura que el menú esté encima de otros elementos */
+  }
   
   

@@ -50,3 +50,13 @@
 .form-field button:hover {
     background-color: #0056b3;
 }
+
+.comment-list {
+    padding: 0; 
+  }
+  
+  .comment-list li {
+    font-weight: normal; /* Elimina la negrita */
+    text-align: left; /* Alinea el texto a la izquierda */
+  }
+  

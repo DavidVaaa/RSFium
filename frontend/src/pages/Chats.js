@@ -12,12 +12,11 @@ const Chats = () => {
   const [userEvents, setUserEvents] = useState([]);
   const [messages, setMessages] = useState([]);
   const [contenido, setUserMessage] = useState('');
-  const { user } = useAuth(); // Obtén el usuario actual del contexto de autenticación
+  const { user } = useAuth();
   const url = window.location.href;
   const chatId = url.substring(url.lastIndexOf('/') + 1);
 
   useEffect(() => {
-    // Obtener los mensajes del chat desde el backend cuando se monta el componente
     axios.get(`/api/materia/${chatId}/comentarios/`)
       .then((response) => {
         setMessages(response.data);
@@ -26,7 +25,6 @@ const Chats = () => {
         console.error('Error al obtener mensajes del chat:', error);
       });
 
-    // Obtener evaluaciones de la materia
     axios.get(`/api/materia/${chatId}/evaluaciones/`)
       .then((response) => {
         setUserEvents(response.data);
@@ -36,17 +34,31 @@ const Chats = () => {
       });
   }, [id_materia, chatId]);
 
+  const sendMessage = () => {
+    // Actualiza el estado local antes de enviar la solicitud al servidor
+    const newMessage = {
+      usuario: user.userId,
+      contenido: contenido,
+    };
+    setMessages([...messages, newMessage]);
+    setUserMessage('');
 
-  // Función para enviar un nuevo mensaje
-  const sendMessage = (contenido) => {
-    // Enviar el nuevo mensaje al backend y guardar localmente después de la confirmación
+    // Envía el nuevo mensaje al servidor
     axios.post(`/api/materia/${chatId}/${user.userId}/comentario/crear/`, { contenido })
-    .then((response) => {
-        const newMessage = response.data;
-        setMessages([...messages, newMessage]);
+      .then((response) => {
+        // El servidor puede devolver una respuesta, pero no necesariamente la usamos aquí
+        // Si lo deseas, puedes manejar la respuesta del servidor aquí.
       })
       .catch((error) => {
         console.error('Error al crear un comentario:', error);
+        // En caso de error, puedes revertir la actualización del estado local si es necesario.
+        // Por ejemplo, puedes eliminar el nuevo mensaje del estado local.
+        const index = messages.findIndex((message) => message === newMessage);
+        if (index !== -1) {
+          const newMessages = [...messages];
+          newMessages.splice(index, 1);
+          setMessages(newMessages);
+        }
       });
   }
 
@@ -65,7 +77,6 @@ const Chats = () => {
           {messages.map((message, index) => (
             <div
               key={index}
-              // className={`message ${message.isUser ? 'user' : 'other'}`}
               className={`message ${message.usuario === user.userId ? 'user' : 'other'}`}
             >
               {message.contenido}
@@ -80,14 +91,7 @@ const Chats = () => {
             value={contenido}
             onChange={(e) => setUserMessage(e.target.value)}
           />
-          <button
-            onClick={() => {
-              sendMessage(contenido, true);
-              setUserMessage('');
-            }}
-          >
-            Enviar
-          </button>
+          <button onClick={sendMessage}>Enviar</button>
         </div>
       </div>
     </div>

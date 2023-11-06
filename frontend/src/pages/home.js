@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from "../components/header";
 import CourseCard from "../components/CourseCard";
-import tic3 from "../images/tic3.png";
+import IngSW from "../images/IngSW.jpg";
 import axios from './axiosConfig';
 import './home.css';
 
@@ -33,7 +33,7 @@ const Home = () => {
             id={course.codigo}
             courseName={course.nombre}
             professor={course.nombre_profesor}
-            imageUrl={tic3}
+            imageUrl={IngSW}
           />
         ))}
 

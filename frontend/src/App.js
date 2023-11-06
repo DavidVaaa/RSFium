@@ -8,6 +8,7 @@ import Debates from './pages/Debates';
 import DetallesDebate from './pages/DetallesDebate';
 import Chats from './pages/Chats';
 import AbrirDebates from './pages/AbrirDebates';
+import EditarUsuario from './pages/EditarUsuario';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/detalles-debates/:debateId" element={<DetallesDebate />} />
           <Route path="/abrir-debates" element={<AbrirDebates />} />
           <Route path="/chats/:id" element={<Chats />} />
+          <Route path="/editar-usuario" element={<EditarUsuario />} />
         </Routes>
       </div>
     </Router>

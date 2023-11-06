@@ -3,16 +3,21 @@ import Header from '../components/header';
 import './DetallesDebates.css';
 import axios from './axiosConfig';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 const DetallesDebates = () => {
+  const { user } = useAuth();
   const [nombre, setNombre] = useState('');
   const [materia, setMateria] = useState('');
   const [fecha_original, setFechaOriginal] = useState('');
   const [fecha_nueva, setFechaNueva] = useState('');
   const [evaluacion, setEvaluacion] = useState('');
+  const [comentarios, setComentarios] = useState([]);
+  const [nuevoComentario, setNuevoComentario] = useState('');
+  const [cerrado, setCerrado] = useState(false);
+
 
   const { debateId } = useParams();
-
   useEffect(() => {
     // Realiza una solicitud para obtener los detalles del debate en función de su identificador (debateId)
     axios.get(`/api/debates/${debateId}`)
@@ -21,6 +26,7 @@ const DetallesDebates = () => {
         setNombre(debate.nombre);
         setFechaOriginal(debate.fecha_original);
         setFechaNueva(debate.fecha_nueva);
+        setCerrado(debate.cerrado);
         axios.get(`/api/evaluaciones/${debate.evaluacion}`)
           .then((response) => {
             setEvaluacion(response.data.nombre);
@@ -35,24 +41,52 @@ const DetallesDebates = () => {
           .catch((error) => {
             console.error('Error al cargar los detalles del debate', error);
           });
+        axios.get(`/api/debates/${debateId}/comentarios/`)
+          .then((response) => {
+            const comentarios = response.data;
+            
+            setComentarios(comentarios);
+
+          })
+          .catch((error) => {
+            console.error('Error al cargar los detalles del debate', error);
+          });
       })
       .catch((error) => {
         console.error('Error al cargar los detalles del debate', error);
       });
   }, [debateId]);
+  
 
-  // useEffect(() => {
-  //   // Realiza una solicitud para obtener los detalles del debate en función de su identificador (debateId)
-  //   axios.get(`/api/evaluaciones/${evaluacion}`)
-  //     .then((response) => {
-  //       setMateria(response.data.codigo_materia);
-  //       setEvaluacion(response.data.nombre);
-  //       console.log(response.data)
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error al cargar los detalles del debate', error);
-  //     });
-  // }, [debateId]);
+  const agregarComentario = () => {
+    if (cerrado) {
+      // El debate está cerrado, no se permite agregar comentarios
+      alert('El debate está cerrado y no se pueden agregar comentarios.');
+      return;
+    }
+    if (nuevoComentario.trim() === "") {
+      return;
+    }
+    // Realiza una solicitud para agregar un nuevo comentario al debate
+    axios
+      .post(`/api/debate/${debateId}/crear/${user.userId}/`, {
+        fecha_creacion: new Date(),
+        usuario: user.userId,
+        debate: debateId,
+        contenido: nuevoComentario
+      })
+      .then((response) => {
+        const nuevoComentarioFormateado = {
+          id: response.data.id, // Asegúrate de que response.data.id sea la propiedad correcta
+          contenido: nuevoComentario
+        };
+        setComentarios([...comentarios, nuevoComentarioFormateado]);
+        setNuevoComentario('');
+      })
+      .catch((error) => {
+        console.error('Error al agregar el comentario', error);
+      });
+  };
 
 
 
@@ -85,10 +119,8 @@ const DetallesDebates = () => {
               </select>
             </div>
 
-
             <div className="form-field">
               <label htmlFor="evaluacion">Evaluación</label>
-
               <select
                 id="evaluacion"
                 value={evaluacion}
@@ -98,10 +130,6 @@ const DetallesDebates = () => {
               </select>
             </div>
 
-          </form>
-        </div>
-        <div className="form-column">
-          <form>
             <div className="form-field">
               <label htmlFor="fecha_original">Fecha Original</label>
               <input
@@ -123,12 +151,30 @@ const DetallesDebates = () => {
                 disabled
               />
             </div>
-
           </form>
+        </div>
+        <div className="form-column">
+          <h3>Comentarios del debate</h3>
+          <ul className="comment-list">
+            {comentarios.map((comentario) => (
+              <li key={comentario.id}>{comentario.contenido}</li>
+            ))}
+          </ul>
+          <div className="form-field">
+            <label htmlFor="nuevoComentario">Agregar Comentario</label>
+            <input
+              type="text"
+              id="nuevoComentario"
+              value={nuevoComentario}
+              onChange={(e) => setNuevoComentario(e.target.value)}
+            />
+          </div>
+          <button onClick={agregarComentario}>Agregar</button>
         </div>
       </div>
     </div>
   );
+
 };
 
 export default DetallesDebates;
